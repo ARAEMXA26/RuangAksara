@@ -167,7 +167,13 @@ Buka [http://localhost:3000](http://localhost:3000) di browser Anda.
 
 ## 👨‍💻 Pengembang
 
-Dikembangkan oleh **ARAEMXA26** sebagai proyek UAS Semester 4.
+| Nama | NIM |
+|---|---|
+| **Arae Mahesa Armera** | 2024081015 |
+| **Laurensius Jovito Mahaputra Darsono** | 2024081008 |
+| **Ruud Zaki Bramdani** | 2024081028 |
+
+Dikembangkan sebagai proyek UAS Semester 4.
 
 ---
 
