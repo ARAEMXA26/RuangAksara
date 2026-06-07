@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  firebaseUid String   @unique
+  email       String   @unique
+  name        String
+  role        String   @default("mahasiswa")
+  borrowLimit Int      @default(3)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transactions  Transaction[]
+  knowledgeBase KnowledgeBase[]
+}
+
+model Book {
+  id        String   @id @default(cuid())
+  title     String
+  author    String
+  isbn        String   @unique
+  category    String   @default("Umum")
+  year        Int      @default(2024)
+  cover       String   @default("📘") // Bisa berisi emoji atau URL asli
+  description String?  @db.Text
+  pageCount   Int?
+  createdAt   DateTime @default(now())
+
+  inventory Inventory[]
+}
+
+model Inventory {
+  id           String @id @default(cuid())
+  bookId       String
+  status       String @default("available") // available, borrowed, maintenance
+  locationRack String @default("")
+
+  book         Book          @relation(fields: [bookId], references: [id])
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String    @id @default(cuid())
+  userId      String
+  inventoryId String
+  borrowDate  DateTime  @default(now())
+  dueDate     DateTime
+  returnDate  DateTime?
+  status      String    @default("active") // active, overdue, returned
+
+  user      User      @relation(fields: [userId], references: [id])
+  inventory Inventory @relation(fields: [inventoryId], references: [id])
+  fines     Fine[]
+}
+
+model Fine {
+  id            String @id @default(cuid())
+  transactionId String
+  amount        Int
+  status        String @default("unpaid") // unpaid, paid
+
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+}
+
+model KnowledgeBase {
+  id        String   @id @default(cuid())
+  title     String   @default("")
+  content   String
+  createdBy String
+  createdAt DateTime @default(now())
+
+  author User @relation(fields: [createdBy], references: [id])
+}
