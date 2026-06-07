@@ -11,7 +11,7 @@
 
 **RuangAksara** adalah platform perpustakaan digital canggih yang dirancang untuk membantu institusi pendidikan dalam mengelola koleksi buku, jurnal, disertasi, dan artikel penelitian secara modern dan efisien. Dengan integrasi **Artificial Intelligence (AI)**, RuangAksara menghadirkan pengalaman pencarian dan interaksi yang lebih cerdas dibandingkan sistem perpustakaan konvensional.
 
-Sistem ini dikembangkan sebagai proyek **Ujian Akhir Semester (UAS)** mata kuliah Media Pembelajaran.
+Sistem ini dikembangkan sebagai proyek **Ujian Akhir Semester (UAS)** mata kuliah Manajemen Pengetahuan.
 
 ---
 
