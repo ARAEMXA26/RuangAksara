@@ -353,8 +353,8 @@ export default function DashboardPage() {
           <main className="dashboard-main">
             <div className="dashboard-welcome-header">
               <div>
-                <h1>Selamat Datang, {user.name}! 👋</h1>
-                <p className="welcome-subtitle">Kelola peminjaman, temukan koleksi, dan tingkatkan pengetahuanmu.</p>
+                <h1 className="admin-welcome-title">Selamat Datang, {user.name}!</h1>
+                <p className="admin-welcome-sub">Kelola peminjaman, temukan koleksi, dan tingkatkan pengetahuanmu.</p>
               </div>
               <div className="dashboard-calendar-card">
                 <div className="calendar-icon-wrapper">
