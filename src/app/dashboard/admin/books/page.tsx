@@ -509,11 +509,11 @@ export default function AdminBooksPage() {
                             <table className="table">
                               <thead>
                                 <tr>
-                                  <th>Peminjam</th>
-                                  <th>Buku</th>
-                                  <th>Jumlah Denda</th>
-                                  <th>Status</th>
-                                  <th>Aksi</th>
+                                  <th style={{ width: "25%", minWidth: "180px" }}>Peminjam</th>
+                                  <th style={{ width: "35%", minWidth: "260px" }}>Buku</th>
+                                  <th style={{ width: "16%", minWidth: "120px" }}>Jumlah Denda</th>
+                                  <th style={{ width: "12%", minWidth: "100px" }}>Status</th>
+                                  <th style={{ width: "12%", minWidth: "100px" }}>Aksi</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -524,7 +524,7 @@ export default function AdminBooksPage() {
                                         <div className="sirkulasi-avatar">{getInitials(fine.userName)}</div>
                                         <div>
                                           <div style={{ fontWeight: 600, fontSize: "0.88rem" }}>{fine.userName}</div>
-                                          <div style={{ fontSize: "0.78rem", color: "var(--gray-400)" }}>{fine.userEmail}</div>
+                                          <div style={{ fontSize: "0.78rem", color: "var(--gray-400)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={fine.userEmail}>{fine.userEmail}</div>
                                         </div>
                                       </div>
                                     </td>
@@ -539,9 +539,9 @@ export default function AdminBooksPage() {
                                         </div>
                                       </div>
                                     </td>
-                                    <td><span style={{ fontWeight: 700, color: "var(--danger)" }}>Rp {fine.amount.toLocaleString("id-ID")}</span></td>
-                                    <td><span className="badge badge-danger" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.75rem" }}><XCircle size={12} /> Belum Bayar</span></td>
-                                    <td>
+                                    <td style={{ whiteSpace: "nowrap" }}><span style={{ fontWeight: 700, color: "var(--danger)" }}>Rp {fine.amount.toLocaleString("id-ID")}</span></td>
+                                    <td style={{ whiteSpace: "nowrap" }}><span className="badge badge-danger" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.75rem" }}><XCircle size={12} /> Belum Bayar</span></td>
+                                    <td style={{ whiteSpace: "nowrap" }}>
                                       <button className="btn btn-sm btn-success" onClick={() => handlePayFine(fine.id)} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                         <CreditCard size={14} /> Bayar
                                       </button>
@@ -584,13 +584,13 @@ export default function AdminBooksPage() {
                             <table className="table">
                               <thead>
                                 <tr>
-                                  <th>Peminjam</th>
-                                  <th>Buku</th>
-                                  <th>Tgl Pinjam</th>
-                                  <th>Tgl Jatuh Tempo</th>
-                                  <th>Status</th>
-                                  <th>Denda</th>
-                                  <th>Aksi</th>
+                                  <th style={{ width: "20%", minWidth: "160px" }}>Peminjam</th>
+                                  <th style={{ width: "32%", minWidth: "240px" }}>Buku</th>
+                                  <th style={{ width: "12%", minWidth: "105px" }}>Tgl Pinjam</th>
+                                  <th style={{ width: "12%", minWidth: "105px" }}>Tgl Jatuh Tempo</th>
+                                  <th style={{ width: "12%", minWidth: "110px" }}>Status</th>
+                                  <th style={{ width: "8%", minWidth: "80px" }}>Denda</th>
+                                  <th style={{ width: "8%", minWidth: "80px" }}>Aksi</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -601,7 +601,7 @@ export default function AdminBooksPage() {
                                         <div className="sirkulasi-avatar">{getInitials(tx.userName)}</div>
                                         <div>
                                           <div style={{ fontWeight: 600, fontSize: "0.88rem" }}>{tx.userName}</div>
-                                          <div style={{ fontSize: "0.78rem", color: "var(--gray-400)" }}>{tx.userEmail}</div>
+                                          <div style={{ fontSize: "0.78rem", color: "var(--gray-400)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={tx.userEmail}>{tx.userEmail}</div>
                                         </div>
                                       </div>
                                     </td>
@@ -616,17 +616,17 @@ export default function AdminBooksPage() {
                                         </div>
                                       </div>
                                     </td>
-                                    <td style={{ fontSize: "0.85rem" }}>{new Date(tx.borrowDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
-                                    <td style={{ fontSize: "0.85rem" }}>{new Date(tx.dueDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
-                                    <td>{getStatusBadge(tx.status, tx.daysLate)}</td>
-                                    <td>
+                                    <td style={{ fontSize: "0.85rem", whiteSpace: "nowrap" }}>{new Date(tx.borrowDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
+                                    <td style={{ fontSize: "0.85rem", whiteSpace: "nowrap" }}>{new Date(tx.dueDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
+                                    <td style={{ whiteSpace: "nowrap" }}>{getStatusBadge(tx.status, tx.daysLate)}</td>
+                                    <td style={{ whiteSpace: "nowrap" }}>
                                       {tx.fineAmount > 0 ? (
                                         <span style={{ fontWeight: 600, color: "var(--danger)" }}>Rp {tx.fineAmount.toLocaleString("id-ID")}</span>
                                       ) : (
                                         <span style={{ color: "var(--gray-400)" }}>Rp 0</span>
                                       )}
                                     </td>
-                                    <td>
+                                    <td style={{ whiteSpace: "nowrap" }}>
                                       <div style={{ display: "flex", gap: 6 }}>
                                         {circulationTab === "active" && (
                                           <button className="user-action-btn" title="Kembalikan" onClick={() => handleReturn(tx.id)} style={{ color: "#3b82f6", borderColor: "#3b82f6" }}>
