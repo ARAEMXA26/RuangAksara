@@ -259,16 +259,20 @@ export default function AdminBooksPage() {
       <div className="page">
         <div className="dashboard-layout">
           {/* Sidebar */}
+          {/* Sidebar */}
           <aside className="sidebar">
-            <div style={{ marginBottom: "24px", textAlign: "center" }}>
-              <div className="navbar-avatar" style={{ width: "64px", height: "64px", margin: "0 auto 12px", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--primary)", color: "#fff", borderRadius: "50%" }}>
-                <User size={32} />
+            <div className="user-profile-section">
+              <div className="avatar-container">
+                <User size={36} />
               </div>
-              <h4 style={{ fontSize: "1rem", marginBottom: "2px" }}>{user.name}</h4>
-              <span className="badge badge-primary" style={{ textTransform: "capitalize" }}>{user.role}</span>
+              <h3 className="user-profile-name">{user.name}</h3>
+              <span className="user-profile-role" style={{ textTransform: "capitalize" }}>
+                {user.role}
+              </span>
             </div>
+
             <div className="sidebar-section">
-              <div className="sidebar-label">Menu Utama</div>
+              <div className="sidebar-label">MENU UTAMA</div>
               <Link href="/dashboard" className="sidebar-link">
                 <span className="sidebar-icon"><LayoutDashboard size={18} /></span>
                 Dashboard Saya
@@ -278,8 +282,9 @@ export default function AdminBooksPage() {
                 Pencarian Koleksi
               </Link>
             </div>
+
             <div className="sidebar-section">
-              <div className="sidebar-label">Admin</div>
+              <div className="sidebar-label">ADMIN</div>
               <Link href="/dashboard" className="sidebar-link">
                 <span className="sidebar-icon"><LayoutDashboard size={18} /></span>
                 Admin Overview

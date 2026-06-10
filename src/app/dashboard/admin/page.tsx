@@ -8,7 +8,7 @@ import AnimatedSection from "@/components/AnimatedSection";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Search, BookOpen, Bot, Brain,
-  AlertTriangle, Coins, Library, User, Clock, Users
+  AlertTriangle, Coins, Library, User, Clock, Users, Settings
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -92,40 +92,45 @@ export default function AdminDashboardPage() {
         <div className="dashboard-layout">
           {/* Sidebar */}
           <aside className="sidebar">
-            <div style={{ marginBottom: "24px", textAlign: "center" }}>
-              <div
-                className="navbar-avatar"
-                style={{ width: "64px", height: "64px", margin: "0 auto 12px", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--primary)", color: "#fff", borderRadius: "50%" }}
-              >
-                <Library size={32} />
+            <div className="user-profile-section">
+              <div className="avatar-container">
+                <User size={36} />
               </div>
-              <h4 style={{ fontSize: "1rem", marginBottom: "2px" }}>{user.name}</h4>
-              <span className="badge badge-primary" style={{ textTransform: "capitalize" }}>
+              <h3 className="user-profile-name">{user.name}</h3>
+              <span className="user-profile-role" style={{ textTransform: "capitalize" }}>
                 {user.role}
               </span>
             </div>
 
             <div className="sidebar-section">
-              <div className="sidebar-label">Admin Panel</div>
-              <Link href="/dashboard/admin" className="sidebar-link sidebar-link-active">
+              <div className="sidebar-label">MENU UTAMA</div>
+              <Link href="/dashboard" className="sidebar-link">
+                <span className="sidebar-icon"><LayoutDashboard size={18} /></span>
+                Dashboard Saya
+              </Link>
+              <Link href="/search" className="sidebar-link">
+                <span className="sidebar-icon"><Search size={18} /></span>
+                Pencarian Koleksi
+              </Link>
+            </div>
+
+            <div className="sidebar-section">
+              <div className="sidebar-label">ADMIN</div>
+              <Link href="/dashboard" className="sidebar-link sidebar-link-active">
                 <span className="sidebar-icon"><LayoutDashboard size={18} /></span>
                 Admin Overview
               </Link>
               <Link href="/dashboard/admin/books" className="sidebar-link">
-                <span className="sidebar-icon"><BookOpen size={18} /></span>
-                Manajemen Buku
+                <span className="sidebar-icon"><Library size={18} /></span>
+                Kelola Buku
               </Link>
               <Link href="/knowledge" className="sidebar-link">
                 <span className="sidebar-icon"><Brain size={18} /></span>
                 Knowledge Base
               </Link>
-            </div>
-
-            <div className="sidebar-section">
-              <div className="sidebar-label">User Mode</div>
-              <Link href="/dashboard" className="sidebar-link">
-                <span className="sidebar-icon"><User size={18} /></span>
-                Dashboard User
+              <Link href="/settings" className="sidebar-link">
+                <span className="sidebar-icon"><Settings size={18} /></span>
+                Pengaturan
               </Link>
             </div>
           </aside>
