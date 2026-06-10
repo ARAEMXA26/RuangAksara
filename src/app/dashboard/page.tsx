@@ -342,11 +342,6 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-
-            {/* Bottom mini avatar 'N' / logo */}
-            <div className="sidebar-footer">
-              <div className="mini-avatar">N</div>
-            </div>
           </aside>
 
           {/* Main Content */}
