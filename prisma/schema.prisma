@@ -10,6 +10,7 @@ datasource db {
 model User {
   id          String   @id @default(cuid())
   firebaseUid String   @unique
+  username    String?  @unique
   email       String   @unique
   name        String
   role        String   @default("mahasiswa")
@@ -19,12 +20,14 @@ model User {
 
   transactions  Transaction[]
   knowledgeBase KnowledgeBase[]
+  bookmarks     Bookmark[]
+  reservations  Reservation[]
 }
 
 model Book {
-  id        String   @id @default(cuid())
-  title     String
-  author    String
+  id          String   @id @default(cuid())
+  title       String
+  author      String
   isbn        String   @unique
   category    String   @default("Umum")
   year        Int      @default(2024)
@@ -33,7 +36,9 @@ model Book {
   pageCount   Int?
   createdAt   DateTime @default(now())
 
-  inventory Inventory[]
+  inventory    Inventory[]
+  bookmarks    Bookmark[]
+  reservations Reservation[]
 }
 
 model Inventory {
@@ -77,4 +82,27 @@ model KnowledgeBase {
   createdAt DateTime @default(now())
 
   author User @relation(fields: [createdBy], references: [id])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  bookId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+}
+
+model Reservation {
+  id        String   @id @default(cuid())
+  userId    String
+  bookId    String
+  status    String   @default("pending") // pending, approved, fulfilled, cancelled
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }

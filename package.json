@@ -11,15 +11,26 @@
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.19.3",
     "firebase": "^12.14.0",
+    "firebase-admin": "^14.0.0",
     "gsap": "^3.15.0",
     "lucide-react": "^1.17.0",
     "next": "16.2.7",
+    "nodemailer": "^8.0.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "recharts": "^3.8.1",
+    "swr": "^2.4.1"
   },
   "devDependencies": {
-    "prisma": "^6.19.3"
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/node": "^25.9.2",
+    "@types/nodemailer": "^8.0.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "prisma": "^6.19.3",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

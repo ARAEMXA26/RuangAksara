@@ -33,7 +33,7 @@ async function main() {
     where: { email: "budi@university.ac.id" },
     update: {},
     create: {
-      firebaseUid: "firebase_003",
+      firebaseUid: "XlPfj1X0yTSngjslj7RHT5CwCng2",
       email: "budi@university.ac.id",
       name: "Budi Pustakawan",
       role: "pustakawan",
