@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }: { children: any }) => {
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        setLoading(true);
         try {
           const res = await fetch(`/api/auth/me?uid=${firebaseUser.uid}`);
           if (res.ok) {
@@ -81,49 +82,61 @@ export const AuthProvider = ({ children }: { children: any }) => {
     if (!auth) throw new Error("Firebase not initialized");
     if (!email || !password) throw new Error("Email and password required");
     
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    setLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      return userCredential.user;
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
   };
 
   const register = async (name?: string, email?: string, password?: string, role?: string) => {
     if (!auth) throw new Error("Firebase not initialized");
     if (!email || !password || !name) throw new Error("Missing required fields");
 
-    // 1. Create in Firebase
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const firebaseUser = userCredential.user;
-
+    setLoading(true);
     try {
-      // Update Firebase Profile Name
-      await updateProfile(firebaseUser, { displayName: name });
+      // 1. Create in Firebase
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
 
-      // 2. Save to Database via API
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firebaseUid: firebaseUser.uid,
-          email: firebaseUser.email,
-          name,
-          role: role || "mahasiswa",
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Database registration failed");
-      }
-      
-      return firebaseUser;
-    } catch (error) {
-      // 3. Rollback System: If database fails, delete the Firebase user to prevent orphan data
-      console.error("Registration failed during DB sync, rolling back Firebase User...", error);
       try {
-        await firebaseUser.delete();
-      } catch (deleteError) {
-        console.error("Critical Error: Failed to rollback Firebase User", deleteError);
+        // Update Firebase Profile Name
+        await updateProfile(firebaseUser, { displayName: name });
+
+        // 2. Save to Database via API
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firebaseUid: firebaseUser.uid,
+            email: firebaseUser.email,
+            name,
+            role: role || "mahasiswa",
+          }),
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "Database registration failed");
+        }
+        
+        return firebaseUser;
+      } catch (error) {
+        // 3. Rollback System: If database fails, delete the Firebase user to prevent orphan data
+        console.error("Registration failed during DB sync, rolling back Firebase User...", error);
+        try {
+          await firebaseUser.delete();
+        } catch (deleteError) {
+          console.error("Critical Error: Failed to rollback Firebase User", deleteError);
+        }
+        throw error; // Rethrow to show in UI
       }
-      throw error; // Rethrow to show in UI
+    } catch (error) {
+      setLoading(false);
+      throw error;
     }
   };
 
