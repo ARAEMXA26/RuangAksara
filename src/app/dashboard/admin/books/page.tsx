@@ -509,11 +509,11 @@ export default function AdminBooksPage() {
                             <table className="table">
                               <thead>
                                 <tr>
-                                  <th style={{ width: "25%", minWidth: "180px" }}>Peminjam</th>
-                                  <th style={{ width: "35%", minWidth: "260px" }}>Buku</th>
-                                  <th style={{ width: "16%", minWidth: "120px" }}>Jumlah Denda</th>
-                                  <th style={{ width: "12%", minWidth: "100px" }}>Status</th>
-                                  <th style={{ width: "12%", minWidth: "100px" }}>Aksi</th>
+                                  <th style={{ width: "25%", minWidth: "180px", whiteSpace: "nowrap" }}>Peminjam</th>
+                                  <th style={{ width: "35%", minWidth: "260px", whiteSpace: "nowrap" }}>Buku</th>
+                                  <th style={{ width: "16%", minWidth: "130px", whiteSpace: "nowrap" }}>Jumlah Denda</th>
+                                  <th style={{ width: "12%", minWidth: "100px", whiteSpace: "nowrap" }}>Status</th>
+                                  <th style={{ width: "12%", minWidth: "100px", whiteSpace: "nowrap" }}>Aksi</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -584,13 +584,13 @@ export default function AdminBooksPage() {
                             <table className="table">
                               <thead>
                                 <tr>
-                                  <th style={{ width: "20%", minWidth: "160px" }}>Peminjam</th>
-                                  <th style={{ width: "32%", minWidth: "240px" }}>Buku</th>
-                                  <th style={{ width: "12%", minWidth: "105px" }}>Tgl Pinjam</th>
-                                  <th style={{ width: "12%", minWidth: "105px" }}>Tgl Jatuh Tempo</th>
-                                  <th style={{ width: "12%", minWidth: "110px" }}>Status</th>
-                                  <th style={{ width: "8%", minWidth: "80px" }}>Denda</th>
-                                  <th style={{ width: "8%", minWidth: "80px" }}>Aksi</th>
+                                  <th style={{ width: "20%", minWidth: "160px", whiteSpace: "nowrap" }}>Peminjam</th>
+                                  <th style={{ width: "32%", minWidth: "240px", whiteSpace: "nowrap" }}>Buku</th>
+                                  <th style={{ width: "12%", minWidth: "110px", whiteSpace: "nowrap" }}>Tgl Pinjam</th>
+                                  <th style={{ width: "14%", minWidth: "145px", whiteSpace: "nowrap" }}>Tgl Jatuh Tempo</th>
+                                  <th style={{ width: "10%", minWidth: "90px", whiteSpace: "nowrap" }}>Status</th>
+                                  <th style={{ width: "6%", minWidth: "70px", whiteSpace: "nowrap" }}>Denda</th>
+                                  <th style={{ width: "6%", minWidth: "70px", whiteSpace: "nowrap" }}>Aksi</th>
                                 </tr>
                               </thead>
                               <tbody>
