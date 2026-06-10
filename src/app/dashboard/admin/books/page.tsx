@@ -456,7 +456,7 @@ export default function AdminBooksPage() {
 
                     {/* Search + Filter Bar */}
                     <div className="sirkulasi-toolbar">
-                      <div className="user-search-box" style={{ minWidth: 260 }}>
+                      <div className="user-search-box">
                         <Search size={16} className="user-search-icon" />
                         <input type="text" placeholder="Cari anggota, judul buku, atau kode..." value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="user-search-input" />
                       </div>

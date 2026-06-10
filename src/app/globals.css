@@ -3733,37 +3733,81 @@
   .dashboard-welcome-header { flex-direction: column; align-items: flex-start; gap: 16px; }
   .dashboard-calendar-card { width: 100%; }
 }
-}
 
 /* Ensure search box and buttons are perfectly aligned in sirkulasi & user management toolbars */
-.sirkulasi-toolbar, .user-mgmt-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.sirkulasi-toolbar, .user-mgmt-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
 }
 
+/* Base style for the search container */
 .sirkulasi-toolbar .user-search-box,
 .user-mgmt-actions .user-search-box {
   height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
   padding: 0 14px !important;
   box-sizing: border-box !important;
   display: flex !important;
   align-items: center !important;
+  background: var(--white) !important;
+  border: 1px solid var(--gray-200) !important;
   border-radius: var(--radius-md) !important; /* 12px */
 }
 
+/* Align the text input inside the search box */
 .sirkulasi-toolbar .user-search-input,
 .user-mgmt-actions .user-search-input {
   height: 100% !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 0.88rem !important;
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-.sirkulasi-toolbar .btn,
-.user-mgmt-actions .btn {
+/* Make filter/dropdown buttons match the search box exactly */
+.sirkulasi-toolbar .btn-outline,
+.user-mgmt-actions .btn-outline {
   height: 38px !important;
-  padding: 0 18px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  padding: 0 16px !important;
   box-sizing: border-box !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  border: 1px solid var(--gray-200) !important;
+  background: var(--white) !important;
+  color: var(--gray-700) !important;
   border-radius: var(--radius-md) !important; /* 12px */
+  text-transform: none !important; /* Make it regular title case, not loud uppercase */
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  letter-spacing: normal !important;
+  transition: all var(--transition-fast) !important;
 }
+
+.sirkulasi-toolbar .btn-outline:hover,
+.user-mgmt-actions .btn-outline:hover {
+  background: var(--gray-50) !important;
+  border-color: var(--gray-300) !important;
+  color: var(--gray-900) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Optimize sirkulasi table padding and columns to fit without horizontal scroll on desktop */
+.sirkulasi-main .table th,
+.sirkulasi-main .table td {
+  padding: 12px 14px !important;
+  font-size: 0.88rem !important;
+}
+
+.sirkulasi-main .table {
+  min-width: 720px !important;
+}
+}
+
