@@ -3734,3 +3734,36 @@
   .dashboard-calendar-card { width: 100%; }
 }
 }
+
+/* Ensure search box and buttons are perfectly aligned in sirkulasi & user management toolbars */
+.sirkulasi-toolbar, .user-mgmt-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sirkulasi-toolbar .user-search-box,
+.user-mgmt-actions .user-search-box {
+  height: 38px !important;
+  padding: 0 14px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  border-radius: var(--radius-md) !important; /* 12px */
+}
+
+.sirkulasi-toolbar .user-search-input,
+.user-mgmt-actions .user-search-input {
+  height: 100% !important;
+}
+
+.sirkulasi-toolbar .btn,
+.user-mgmt-actions .btn {
+  height: 38px !important;
+  padding: 0 18px !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: var(--radius-md) !important; /* 12px */
+}
