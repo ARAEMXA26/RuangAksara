@@ -63,7 +63,6 @@ export default function Navbar() {
     { href: "/search", label: "Katalog", icon: <Search size={18} /> },
     { href: "/repository", label: "Repository", icon: <BookOpen size={18} /> },
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
-    ...(user.role !== "pustakawan" ? [{ href: "/circulation", label: "Sirkulasi", icon: <BookOpen size={18} /> }] : []),
     ...(user.role === "pustakawan" ? [{ href: "/knowledge", label: "Knowledge", icon: <Brain size={18} /> }] : []),
   ] : [
     { href: "/search", label: "Katalog", icon: <Search size={18} /> },
