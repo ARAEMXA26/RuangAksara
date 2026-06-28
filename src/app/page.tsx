@@ -45,7 +45,7 @@ export default function HomePage() {
   const heroRef = useRef(null);
   const [activeFaq, setActiveFaq] = useState(null);
   const popularScrollRef = useRef(null);
-  const [bgSrc, setBgSrc] = useState("/upj2-3.png");
+  const [bgSrc, setBgSrc] = useState("/library-hero.png");
   const [bgError, setBgError] = useState(false);
 
   const [books, setBooks] = useState<any[]>([]);
@@ -126,17 +126,15 @@ export default function HomePage() {
         {/* Background Image UPJ */}
         <div className="absolute inset-0 z-0 flex justify-center items-center bg-gray-50">
           {!bgError ? (
-            <img 
+            <Image 
               src={bgSrc} 
               alt="UPJ Background" 
-              onError={() => {
-                if (bgSrc === "/upj2-3.png") {
-                  setBgSrc("/library-hero.png");
-                } else {
-                  setBgError(true);
-                }
-              }}
-              className="w-full h-full object-cover object-center scale-135 translate-y-32 opacity-[0.9] transition-all duration-500" 
+              fill
+              priority
+              sizes="100vw"
+              onError={() => setBgError(true)}
+              style={{ objectFit: "cover", objectPosition: "center" }}
+              className="scale-135 translate-y-32 opacity-[0.9] transition-all duration-500" 
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-tr from-slate-100 via-indigo-50 to-slate-100 opacity-60"></div>
@@ -147,7 +145,14 @@ export default function HomePage() {
 
         <div className="relative z-10 flex flex-col items-center px-4 max-w-4xl mx-auto text-center mt-8">
           {/* Title Image */}
-          <img src="/group-408.png" alt="Ruang Aksara Library" className="w-full max-w-xl mb-8" />
+          <Image 
+            src="/group-408.png" 
+            alt="Ruang Aksara Library" 
+            width={576}
+            height={295}
+            priority
+            className="w-full max-w-xl mb-8 h-auto"
+          />
 
           {/* Description */}
           <p className="font-sans text-black text-base md:text-lg font-normal leading-relaxed max-w-3xl mb-10">
