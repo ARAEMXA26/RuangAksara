@@ -43,17 +43,7 @@ export default function RepositoryPage() {
   }, []);
 
   const getDocType = (doc: any) => {
-    const title = doc.title.toLowerCase();
-    if (title.includes("sop") || title.includes("panduan") || title.includes("perpanjangan")) {
-      return "SOP & Panduan";
-    }
-    if (title.includes("jurnal") || title.includes("riset") || title.includes("strategi")) {
-      return "Riset & Jurnal";
-    }
-    if (title.includes("kebijakan") || title.includes("aturan") || title.includes("denda")) {
-      return "Kebijakan";
-    }
-    return "SOP & Panduan"; // Default fallback
+    return doc.category || "SOP & Panduan";
   };
 
   const handleResetFilters = () => {
@@ -78,7 +68,7 @@ export default function RepositoryPage() {
     const matchesTypeFilter = selectedTypes.length === 0 || selectedTypes.includes(docType);
 
     // 4. Sidebar Access Filter
-    const docAccess = "Terbuka"; 
+    const docAccess = doc.access || "Terbuka"; 
     const matchesAccessFilter = selectedAccess.length === 0 || selectedAccess.includes(docAccess);
 
     // 5. Year Filter
@@ -147,7 +137,7 @@ export default function RepositoryPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
-              <button type="button" className="repo-search-btn" style={{ background: "var(--primary)", border: "none", color: "white", padding: "0 16px", borderRadius: "0 var(--radius-md) var(--radius-md) 0", height: "100%", cursor: "pointer" }}>
+              <button type="button" className="repo-search-btn" style={{ background: "var(--primary)" }}>
                 Cari
               </button>
             </form>
@@ -298,7 +288,7 @@ export default function RepositoryPage() {
                       }}
                     /> {access}
                     <span className="katalog-checkbox-count">
-                      ({access === "Terbuka" ? documents.length : 0})
+                      ({documents.filter((d) => (d.access || "Terbuka") === access).length})
                     </span>
                   </label>
                 ))}
@@ -385,7 +375,7 @@ export default function RepositoryPage() {
                               <span>•</span>
                               <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><Calendar size={14} /> {doc.createdAt}</span>
                               <span>•</span>
-                              <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "var(--success)" }}><Unlock size={14} /> Terbuka</span>
+                              <span style={{ display: "flex", alignItems: "center", gap: "4px", color: (doc.access || "Terbuka") === "Terbatas" ? "var(--warning)" : "var(--success)" }}><Unlock size={14} /> {doc.access || "Terbuka"}</span>
                             </div>
                             <p style={{ fontSize: "0.9rem", color: "var(--gray-600)", lineHeight: "1.5", marginBottom: "16px" }}>{doc.content}</p>
                             <div style={{ display: "flex", gap: "8px" }}>

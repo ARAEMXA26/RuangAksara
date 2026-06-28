@@ -60,6 +60,8 @@ export async function GET(req: Request) {
           category: book.category,
           year: book.year,
           cover: book.cover,
+          description: book.description,
+          pageCount: book.pageCount,
           similarity: parseFloat(score.toFixed(4)),
           available: book.inventory.filter((i) => i.status === "available").length,
           total: book.inventory.length,

@@ -17,15 +17,33 @@ import Link from "next/link";
 export default function AdminBooksPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Main tab
   const [mainTab, setMainTab] = useState("tambah");
 
   // ===== Tambah Buku State =====
   const [isbn, setIsbn] = useState("");
+  const [judulBuku, setJudulBuku] = useState("");
+  const [penulis, setPenulis] = useState("");
+  const [penerbit, setPenerbit] = useState("");
+  const [tahunTerbit, setTahunTerbit] = useState("");
+  const [kategori, setKategori] = useState("Teknologi Informasi");
+  const [bahasa, setBahasa] = useState("Indonesia");
+  const [jumlahEksemplar, setJumlahEksemplar] = useState(3);
+  const [lokasiRak, setLokasiRak] = useState("");
+  const [sinopsis, setSinopsis] = useState("");
+  const [cover, setCover] = useState("📘");
+  const [pageCount, setPageCount] = useState<number | null>(null);
+  const [racks, setRacks] = useState<any[]>([]);
+  const [jenisKoleksi, setJenisKoleksi] = useState("Buku");
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [bookData, setBookData] = useState<any>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -77,9 +95,9 @@ export default function AdminBooksPage() {
   }, [searchInput]);
 
   // Fetch sirkulasi data
-  const fetchSirkulasi = useCallback(async () => {
+  const fetchSirkulasi = useCallback(async (silent = false) => {
     if (!user || user.role !== "pustakawan") return;
-    setDataLoading(true);
+    if (!silent) setDataLoading(true);
     try {
       const params = new URLSearchParams();
       params.set("tab", circulationTab);
@@ -113,22 +131,25 @@ export default function AdminBooksPage() {
     }
   }, [mainTab, fetchSirkulasi]);
 
-  // Auto refresh every 30s
+  const fetchRacks = useCallback(async () => {
+    try {
+      const res = await fetch("/api/books/racks");
+      if (res.ok) {
+        const data = await res.json();
+        setRacks(data.racks || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch racks:", error);
+    }
+  }, []);
+
   useEffect(() => {
-    if (mainTab !== "sirkulasi") return;
-    const interval = setInterval(fetchSirkulasi, 30000);
-    return () => clearInterval(interval);
-  }, [mainTab, fetchSirkulasi]);
+    if (mainTab === "tambah") {
+      fetchRacks();
+    }
+  }, [mainTab, fetchRacks]);
 
-  if (authLoading) {
-    return (
-      <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <span className="loading-dots"><span></span><span></span><span></span></span>
-      </div>
-    );
-  }
 
-  if (!user || user.role !== "pustakawan") return null;
 
   const showToast = (message: string, type = "success") => {
     setToast({ message, type });
@@ -136,44 +157,152 @@ export default function AdminBooksPage() {
   };
 
   // ===== Tambah Buku Handlers =====
-  const fetchFromGoogleBooks = async (e: any) => {
-    e.preventDefault();
-    if (!isbn.trim()) return;
+  const resetForm = () => {
+    setIsbn("");
+    setJudulBuku("");
+    setPenulis("");
+    setPenerbit("");
+    setTahunTerbit("");
+    setKategori("Teknologi Informasi");
+    setBahasa("Indonesia");
+    setJumlahEksemplar(3);
+    setLokasiRak("");
+    setSinopsis("");
+    setCover("📘");
+    setPageCount(null);
+    setJenisKoleksi("Buku");
+    setError("");
+    setSuccess("");
+  };
+
+  const autoFetchFromGoogleBooks = async (cleanIsbn: string) => {
     setLoading(true);
     setError("");
-    setBookData(null);
     setSuccess("");
     try {
-      const res = await fetch(`/api/books/fetch?isbn=${isbn.replace(/-/g, "")}`);
+      const res = await fetch(`/api/books/fetch?isbn=${cleanIsbn}`);
       const data = await res.json();
       if (res.ok && data.book) {
-        setBookData(data.book);
+        setJudulBuku(data.book.title || "");
+        setPenulis(data.book.author || "");
+        setTahunTerbit(data.book.year ? String(data.book.year) : "");
+        setSinopsis(data.book.description || "");
+        setCover(data.book.cover || "📘");
+        setPageCount(data.book.pageCount || null);
+        setPenerbit(data.book.publisher || "");
+        setBahasa(data.book.language || "Indonesia");
+        
+        // Auto-detect collection type
+        const searchPool = ((data.book.title || "") + " " + (data.book.description || "")).toLowerCase();
+        if (searchPool.includes("jurnal") || searchPool.includes("journal")) {
+          setJenisKoleksi("Jurnal");
+        } else if (searchPool.includes("thesis") || searchPool.includes("tesis")) {
+          setJenisKoleksi("Tesis");
+        } else if (searchPool.includes("skripsi")) {
+          setJenisKoleksi("Skripsi");
+        } else if (searchPool.includes("pdf") || searchPool.includes("e-book") || searchPool.includes("ebook")) {
+          setJenisKoleksi("E-Book");
+        } else {
+          setJenisKoleksi("Buku");
+        }
+        
+        // Auto-select category if we can map it
+        if (data.book.category) {
+          const categoryLower = data.book.category.toLowerCase();
+          if (categoryLower.includes("computer") || categoryLower.includes("technology") || categoryLower.includes("teknologi") || categoryLower.includes("informasi")) {
+            setKategori("Teknologi Informasi");
+          } else if (categoryLower.includes("intelligence") || categoryLower.includes("ai")) {
+            setKategori("AI");
+          } else if (categoryLower.includes("algorithm") || categoryLower.includes("algoritma")) {
+            setKategori("Algoritma");
+          } else if (categoryLower.includes("database") || categoryLower.includes("data")) {
+            setKategori("Database");
+          } else if (categoryLower.includes("software") || categoryLower.includes("rekayasa")) {
+            setKategori("Software Engineering");
+          } else if (categoryLower.includes("network") || categoryLower.includes("jaringan")) {
+            setKategori("Jaringan");
+          } else {
+            setKategori("Umum");
+          }
+        }
+        showToast("Data buku berhasil diambil secara otomatis!", "success");
       } else {
-        setError(data.error || "Buku tidak ditemukan di Google Books");
+        setError("Buku tidak ditemukan di database online. Silakan lengkapi data secara manual.");
       }
     } catch (err) {
-      setError("Terjadi kesalahan saat mengambil data");
+      setError("Terjadi kesalahan saat verifikasi ISBN. Silakan isi secara manual.");
     } finally {
       setLoading(false);
     }
   };
 
-  const saveToDatabase = async () => {
-    if (!bookData) return;
+  useEffect(() => {
+    const cleanIsbn = isbn.replace(/-/g, "").trim();
+    if (cleanIsbn.length === 10 || cleanIsbn.length === 13) {
+      const timer = setTimeout(() => {
+        autoFetchFromGoogleBooks(cleanIsbn);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isbn]);
+
+  const handleSaveBook = async (e: any) => {
+    e.preventDefault();
+    if (!isbn.trim() || !judulBuku.trim() || !penulis.trim()) {
+      setError("ISBN, Judul Buku, dan Penulis wajib diisi.");
+      return;
+    }
+    if (!lokasiRak) {
+      setError("Silakan pilih Lokasi Rak terlebih dahulu.");
+      return;
+    }
+
+    const selectedRack = racks.find(r => r.name === lokasiRak);
+    if (selectedRack && selectedRack.availableCapacity < jumlahEksemplar) {
+      setError(`Kapasitas rak "${lokasiRak}" tidak cukup. Hanya tersisa ${selectedRack.availableCapacity} slot, sedangkan Anda ingin menaruh ${jumlahEksemplar} eksemplar.`);
+      return;
+    }
+
     setSaving(true);
     setError("");
     setSuccess("");
+
+    // Append publisher, language, and collection type details to description for saving
+    let finalDescription = sinopsis;
+    const metaDetails = [
+      penerbit ? `Penerbit: ${penerbit}` : "",
+      bahasa ? `Bahasa: ${bahasa}` : "",
+      `Jenis Koleksi: ${jenisKoleksi}`
+    ].filter(Boolean).join("\n");
+
+    if (metaDetails) {
+      finalDescription = `${metaDetails}\n\n${sinopsis}`;
+    }
+
+    const payload = {
+      isbn: isbn.trim(),
+      title: judulBuku.trim(),
+      author: penulis.trim(),
+      category: kategori,
+      year: tahunTerbit ? parseInt(tahunTerbit) : new Date().getFullYear(),
+      cover: cover || "📘",
+      description: finalDescription,
+      pageCount: pageCount,
+      copies: jumlahEksemplar,
+      locationRack: lokasiRak
+    };
+
     try {
       const res = await fetch("/api/books", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookData),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (res.ok) {
-        setSuccess("Buku berhasil ditambahkan ke perpustakaan!");
-        setBookData(null);
-        setIsbn("");
+        showToast("Buku berhasil disimpan ke database!", "success");
+        resetForm();
+        fetchRacks();
       } else {
         setError(data.error || "Gagal menyimpan buku ke database");
       }
@@ -183,6 +312,16 @@ export default function AdminBooksPage() {
       setSaving(false);
     }
   };
+
+  if (!mounted || authLoading) {
+    return (
+      <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <span className="loading-dots"><span></span><span></span><span></span></span>
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "pustakawan") return null;
 
   // ===== Sirkulasi Handlers =====
   const handleReturn = async (transactionId: string) => {
@@ -342,60 +481,301 @@ export default function AdminBooksPage() {
             {/* ===== TAMBAH BUKU TAB ===== */}
             {mainTab === "tambah" && (
               <AnimatedSection animation="fade-up">
-                <div className="card" style={{ padding: "30px", marginBottom: "30px", background: "white", borderRadius: "12px" }}>
-                  <p style={{ color: "var(--gray-600)", marginBottom: "20px" }}>
-                    Masukkan ISBN buku untuk mengambil data (Judul, Penulis, Sinopsis, dan Cover) secara otomatis dari database Google Books.
-                  </p>
-                  <form onSubmit={fetchFromGoogleBooks} style={{ display: "flex", gap: "16px" }}>
-                    <input type="text" placeholder="Masukkan ISBN (Contoh: 9780132350884)" value={isbn} onChange={(e) => setIsbn(e.target.value)} className="input-field" style={{ flex: 1, padding: "12px 16px", borderRadius: "8px", border: "1px solid var(--gray-300)" }} required />
-                    <button type="submit" className="btn btn-primary" disabled={loading} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "0 24px" }}>
-                      {loading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-                      Cari Buku
-                    </button>
-                  </form>
-                  {error && <div style={{ marginTop: "16px", color: "red", padding: "12px", background: "#fee2e2", borderRadius: "8px" }}>{error}</div>}
-                  {success && <div style={{ marginTop: "16px", color: "green", padding: "12px", background: "#dcfce7", borderRadius: "8px" }}>{success}</div>}
-                </div>
+                <style dangerouslySetInnerHTML={{ __html: `
+                  .tambah-buku-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 20px 24px;
+                    margin-bottom: 24px;
+                  }
+                  @media (max-width: 992px) {
+                    .tambah-buku-grid {
+                      grid-template-columns: repeat(2, 1fr);
+                    }
+                  }
+                  @media (max-width: 640px) {
+                    .tambah-buku-grid {
+                      grid-template-columns: 1fr;
+                    }
+                  }
+                `}} />
 
-                {bookData && (
-                  <div className="card" style={{ padding: "30px", background: "white", borderRadius: "12px" }}>
-                    <h3 style={{ marginBottom: "20px", paddingBottom: "10px", borderBottom: "1px solid var(--gray-200)" }}>Preview Data Buku</h3>
-                    <div style={{ display: "flex", gap: "30px", flexWrap: "wrap" }}>
-                      <div style={{ flexShrink: 0 }}>
-                        {bookData.cover.startsWith("http") ? (
-                          <img src={bookData.cover} alt="Cover" style={{ width: "160px", height: "230px", objectFit: "cover", borderRadius: "8px", boxShadow: "var(--shadow-md)" }} />
-                        ) : (
-                          <div style={{ width: "160px", height: "230px", background: "var(--gray-100)", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "8px", fontSize: "4rem" }}>{bookData.cover}</div>
-                        )}
-                      </div>
-                      <div style={{ flex: 1, minWidth: "300px" }}>
-                        <div style={{ marginBottom: "16px" }}>
-                          <label style={{ display: "block", fontSize: "0.85rem", color: "var(--gray-500)", marginBottom: "4px" }}>Judul Buku</label>
-                          <div style={{ fontWeight: "700", fontSize: "1.2rem", color: "var(--gray-900)" }}>{bookData.title}</div>
-                        </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
-                          <div><label style={{ display: "block", fontSize: "0.85rem", color: "var(--gray-500)", marginBottom: "4px" }}>Penulis</label><div style={{ fontWeight: "600", color: "var(--gray-800)" }}>{bookData.author}</div></div>
-                          <div><label style={{ display: "block", fontSize: "0.85rem", color: "var(--gray-500)", marginBottom: "4px" }}>Tahun Terbit</label><div style={{ fontWeight: "600", color: "var(--gray-800)" }}>{bookData.year}</div></div>
-                          <div><label style={{ display: "block", fontSize: "0.85rem", color: "var(--gray-500)", marginBottom: "4px" }}>ISBN</label><div style={{ fontWeight: "600", color: "var(--gray-800)" }}>{bookData.isbn}</div></div>
-                          <div><label style={{ display: "block", fontSize: "0.85rem", color: "var(--gray-500)", marginBottom: "4px" }}>Halaman</label><div style={{ fontWeight: "600", color: "var(--gray-800)" }}>{bookData.pageCount || "-"}</div></div>
-                        </div>
-                        <div style={{ marginBottom: "24px" }}>
-                          <label style={{ display: "block", fontSize: "0.85rem", color: "var(--gray-500)", marginBottom: "4px" }}>Sinopsis Singkat</label>
-                          <div style={{ fontSize: "0.9rem", color: "var(--gray-700)", lineHeight: "1.5", maxHeight: "100px", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical" }}>{bookData.description || "Tidak ada deskripsi tersedia."}</div>
-                        </div>
-                        <div style={{ display: "flex", gap: "12px", marginTop: "20px" }}>
-                          <button className="btn btn-primary" onClick={saveToDatabase} disabled={saving} style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, justifyContent: "center" }}>
-                            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                            Simpan ke Perpustakaan
-                          </button>
-                          <button className="btn" onClick={() => setBookData(null)} disabled={saving} style={{ display: "flex", alignItems: "center", gap: "8px", background: "var(--gray-100)", color: "var(--gray-700)" }}>
-                            <X size={18} /> Batal
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                <div className="card" style={{ padding: "30px", marginBottom: "30px", background: "white", borderRadius: "12px", boxShadow: "var(--shadow-sm)" }}>
+                  <div style={{ marginBottom: "28px" }}>
+                    <h2 style={{ fontSize: "1.4rem", fontWeight: "700", color: "var(--gray-900)", marginBottom: "4px" }}>Tambah Buku Baru</h2>
+                    <p style={{ color: "var(--gray-500)", fontSize: "0.9rem" }}>Lengkapi informasi buku untuk menambah koleksi ke perpustakaan.</p>
                   </div>
-                )}
+
+                  {error && (
+                    <div style={{ marginBottom: "20px", color: "#b91c1c", padding: "12px 16px", background: "#fef2f2", borderRadius: "8px", border: "1px solid #fee2e2", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <AlertTriangle size={16} />
+                      {error}
+                    </div>
+                  )}
+
+                  {success && (
+                    <div style={{ marginBottom: "20px", color: "#15803d", padding: "12px 16px", background: "#f0fdf4", borderRadius: "8px", border: "1px solid #dcfce7", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <CheckCircle2 size={16} />
+                      {success}
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", gap: "28px", alignItems: "flex-start", flexWrap: "wrap-reverse" }}>
+                    <form onSubmit={handleSaveBook} style={{ flex: 1, minWidth: "300px" }}>
+                      <div className="tambah-buku-grid">
+                        {/* ISBN */}
+                        <div className="input-group">
+                          <label className="input-label" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            ISBN <span style={{ color: "#ef4444" }}>*</span>
+                            {loading && <Loader2 size={14} className="animate-spin" style={{ color: "var(--primary)" }} />}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="9780132350884"
+                            value={isbn}
+                            onChange={(e) => setIsbn(e.target.value)}
+                            className="input"
+                            required
+                          />
+                          <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                            Contoh: 9780132350884 atau 0132350882
+                          </span>
+                        </div>
+
+                        {/* Judul Buku */}
+                        <div className="input-group">
+                          <label className="input-label">
+                            Judul Buku <span style={{ color: "#ef4444" }}>*</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Clean Code"
+                            value={judulBuku}
+                            onChange={(e) => setJudulBuku(e.target.value)}
+                            className="input"
+                            required
+                          />
+                          <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                            Masukkan judul buku
+                          </span>
+                        </div>
+
+                        {/* Penulis */}
+                        <div className="input-group">
+                          <label className="input-label">
+                            Penulis <span style={{ color: "#ef4444" }}>*</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Robert C. Martin"
+                            value={penulis}
+                            onChange={(e) => setPenulis(e.target.value)}
+                            className="input"
+                            required
+                          />
+                          <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                            Masukkan nama penulis
+                          </span>
+                        </div>
+
+                        {/* Penerbit */}
+                        <div className="input-group">
+                          <label className="input-label">Penerbit</label>
+                          <input
+                            type="text"
+                            placeholder="Prentice Hall"
+                            value={penerbit}
+                            onChange={(e) => setPenerbit(e.target.value)}
+                            className="input"
+                          />
+                          <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                            Masukkan nama penerbit
+                          </span>
+                        </div>
+
+                        {/* Tahun Terbit */}
+                        <div className="input-group">
+                          <label className="input-label">Tahun Terbit</label>
+                          <input
+                            type="text"
+                            placeholder="2008"
+                            value={tahunTerbit}
+                            onChange={(e) => setTahunTerbit(e.target.value)}
+                            className="input"
+                          />
+                          <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                            Contoh: 2008
+                          </span>
+                        </div>
+
+                        {/* Kategori */}
+                        <div className="input-group">
+                          <label className="input-label">Kategori</label>
+                          <select
+                            value={kategori}
+                            onChange={(e) => setKategori(e.target.value)}
+                            className="input"
+                            style={{ appearance: "auto" }}
+                          >
+                            <option value="Teknologi Informasi">Teknologi Informasi</option>
+                            <option value="AI">AI</option>
+                            <option value="Algoritma">Algoritma</option>
+                            <option value="Database">Database</option>
+                            <option value="Software Engineering">Software Engineering</option>
+                            <option value="Jaringan">Jaringan</option>
+                            <option value="Umum">Umum</option>
+                          </select>
+                          <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                            Pilih kategori buku
+                          </span>
+                        </div>
+
+                        {/* Bahasa */}
+                        <div className="input-group">
+                          <label className="input-label">Bahasa</label>
+                          <select
+                            value={bahasa}
+                            onChange={(e) => setBahasa(e.target.value)}
+                            className="input"
+                            style={{ appearance: "auto" }}
+                          >
+                            <option value="Indonesia">Indonesia</option>
+                            <option value="Inggris">Inggris</option>
+                            <option value="Lainnya">Lainnya</option>
+                          </select>
+                          <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                            Pilih bahasa buku
+                          </span>
+                        </div>
+
+                        {/* Jenis Koleksi */}
+                        <div className="input-group">
+                          <label className="input-label">Jenis Koleksi <span style={{ color: "#ef4444" }}>*</span></label>
+                          <select
+                            value={jenisKoleksi}
+                            onChange={(e) => setJenisKoleksi(e.target.value)}
+                            className="input"
+                            style={{ appearance: "auto" }}
+                            required
+                          >
+                            <option value="Buku">Buku</option>
+                            <option value="E-Book">E-Book</option>
+                            <option value="Jurnal">Jurnal</option>
+                            <option value="Skripsi">Skripsi</option>
+                            <option value="Tesis">Tesis</option>
+                          </select>
+                          <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                            Pilih tipe format koleksi
+                          </span>
+                        </div>
+
+                        {/* Jumlah Eksemplar */}
+                        <div className="input-group">
+                          <label className="input-label">
+                            Jumlah Eksemplar <span style={{ color: "#ef4444" }}>*</span>
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={jumlahEksemplar}
+                            onChange={(e) => setJumlahEksemplar(parseInt(e.target.value) || 1)}
+                            className="input"
+                            required
+                          />
+                          <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                            Jumlah total buku yang tersedia
+                          </span>
+                        </div>
+
+                        {/* Lokasi Rak */}
+                        <div className="input-group">
+                          <label className="input-label" style={{ display: "flex", justifyContent: "space-between" }}>
+                            <span>Lokasi Rak <span style={{ color: "#ef4444" }}>*</span></span>
+                          </label>
+                          <select
+                            value={lokasiRak}
+                            onChange={(e) => setLokasiRak(e.target.value)}
+                            className="input"
+                            style={{ appearance: "auto" }}
+                            required
+                          >
+                            <option value="">-- Pilih Lokasi Rak --</option>
+                            {racks.map((rack) => {
+                              const isFull = rack.currentCount >= rack.maxCapacity;
+                              const isInsufficient = rack.availableCapacity < jumlahEksemplar;
+                              const isDisabled = isFull || isInsufficient;
+                              
+                              let statusText = `(${rack.currentCount}/${rack.maxCapacity} terisi - sisa ${rack.availableCapacity})`;
+                              if (isFull) {
+                                statusText = `(PENUH - ${rack.currentCount}/${rack.maxCapacity})`;
+                              } else if (isInsufficient) {
+                                statusText = `(sisa ${rack.availableCapacity} slot - kurang ${jumlahEksemplar - rack.availableCapacity})`;
+                              }
+
+                              return (
+                                <option 
+                                  key={rack.name} 
+                                  value={rack.name} 
+                                  disabled={isDisabled}
+                                  style={{ color: isDisabled ? "var(--gray-400)" : "var(--gray-800)" }}
+                                >
+                                  {rack.name} [{rack.category}] {statusText}
+                                </option>
+                              );
+                            })}
+                          </select>
+                          <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                            Pilih lokasi penempatan buku pada rak yang memiliki ruang cukup.
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Sinopsis */}
+                      <div className="input-group" style={{ marginBottom: "28px" }}>
+                        <label className="input-label">Sinopsis</label>
+                        <textarea
+                          placeholder="Masukkan sinopsis atau deskripsi singkat buku"
+                          value={sinopsis}
+                          onChange={(e) => setSinopsis(e.target.value)}
+                          className="input"
+                          style={{ minHeight: "120px", resize: "vertical" }}
+                        />
+                        <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginTop: "4px" }}>
+                          Masukkan sinopsis atau deskripsi singkat buku
+                        </span>
+                      </div>
+
+                      {/* Buttons */}
+                      <div style={{ display: "flex", gap: "12px" }}>
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          onClick={resetForm}
+                          disabled={saving}
+                          style={{ display: "flex", alignItems: "center", gap: "8px", textTransform: "none", letterSpacing: "normal" }}
+                        >
+                          <X size={16} /> Batal
+                        </button>
+                        <button
+                          type="submit"
+                          className="btn btn-primary"
+                          disabled={saving || loading}
+                          style={{ display: "flex", alignItems: "center", gap: "8px", textTransform: "none", letterSpacing: "normal" }}
+                        >
+                          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                          Simpan Buku
+                        </button>
+                      </div>
+                    </form>
+
+                    {cover && cover.startsWith("http") && (
+                      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", background: "var(--gray-50)", padding: "20px", borderRadius: "12px", border: "1px solid var(--gray-200)", width: "200px" }}>
+                        <span style={{ fontSize: "0.8rem", fontWeight: "600", color: "var(--gray-500)" }}>Cover Preview</span>
+                        <img src={cover} alt="Preview Cover" style={{ width: "140px", height: "200px", objectFit: "cover", borderRadius: "8px", boxShadow: "var(--shadow-md)" }} />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </AnimatedSection>
             )}
 
@@ -700,9 +1080,9 @@ export default function AdminBooksPage() {
 
                             return (
                               <>
-                                {toArc(0, overdueAngle, "#ef4444")}
-                                {toArc(overdueAngle, dueTodayAngle, "#f59e0b")}
-                                {toArc(overdueAngle + dueTodayAngle, normalAngle, "#10b981")}
+                                {toArc(0, overdueAngle, "#0f172a")}
+                                {toArc(overdueAngle, dueTodayAngle, "#64748b")}
+                                {toArc(overdueAngle + dueTodayAngle, normalAngle, "#cbd5e1")}
                                 <circle cx="60" cy="60" r="28" fill="white" />
                               </>
                             );
@@ -711,17 +1091,17 @@ export default function AdminBooksPage() {
                       </div>
                       <div className="sirkulasi-legend">
                         <div className="sirkulasi-legend-item">
-                          <span className="sirkulasi-legend-dot" style={{ background: "#ef4444" }}></span>
+                          <span className="sirkulasi-legend-dot" style={{ background: "#0f172a" }}></span>
                           <span className="sirkulasi-legend-label">Terlambat</span>
                           <span className="sirkulasi-legend-count">{s.overdueCount} buku</span>
                         </div>
                         <div className="sirkulasi-legend-item">
-                          <span className="sirkulasi-legend-dot" style={{ background: "#f59e0b" }}></span>
+                          <span className="sirkulasi-legend-dot" style={{ background: "#64748b" }}></span>
                           <span className="sirkulasi-legend-label">Jatuh Tempo Hari Ini</span>
                           <span className="sirkulasi-legend-count">{s.dueTodayCount} buku</span>
                         </div>
                         <div className="sirkulasi-legend-item">
-                          <span className="sirkulasi-legend-dot" style={{ background: "#10b981" }}></span>
+                          <span className="sirkulasi-legend-dot" style={{ background: "#cbd5e1" }}></span>
                           <span className="sirkulasi-legend-label">Normal</span>
                           <span className="sirkulasi-legend-count">{s.normalCount} buku</span>
                         </div>

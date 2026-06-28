@@ -1,3 +1,7 @@
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
 // Chat API Route — Groq (Primary) + Gemini (Fallback)
 
 const SYSTEM_PROMPT = `Kamu adalah asisten virtual pintar untuk "RuangAksara" (Sistem Perpustakaan Canggih).
@@ -122,6 +126,60 @@ async function tryGemini(message, history, apiKey) {
   return null; // all Gemini models failed
 }
 
+// ----- Local DB / Rules Fallback -----
+async function localChatFallback(message: string) {
+  try {
+    const query = message.toLowerCase();
+    
+    // 1. Fetch all knowledge base entries
+    const kbEntries = await prisma.knowledgeBase.findMany();
+    
+    // 2. Try to match KB entries by title or content keywords
+    for (const kb of kbEntries) {
+      const titleLower = kb.title.toLowerCase();
+      const contentLower = kb.content.toLowerCase();
+      
+      // If title or content is highly relevant to the query
+      if (
+        query.includes(titleLower) || 
+        titleLower.includes(query) ||
+        (query.includes("perpanjang") && titleLower.includes("perpanjangan")) ||
+        (query.includes("pinjam") && titleLower.includes("peminjaman")) ||
+        (query.includes("denda") && titleLower.includes("denda")) ||
+        (query.includes("jurnal") && titleLower.includes("jurnal")) ||
+        (query.includes("sop") && titleLower.includes("sop"))
+      ) {
+        return `Berikut informasi dari Knowledge Base kami mengenai **${kb.title}**:\n\n${kb.content}`;
+      }
+    }
+    
+    // 3. Fallback keywords for general library info
+    if (query.includes("ruangaksara") || query.includes("aplikasi") || query.includes("sistem") || query.includes("apa itu")) {
+      return "**RuangAksara** adalah Sistem Perpustakaan Canggih berbasis AI. Sistem ini memudahkan Anda untuk melakukan pencarian koleksi (semantik), sirkulasi peminjaman secara mandiri, mengelola denda, serta mengakses asisten AI untuk memandu aktivitas perpustakaan Anda.";
+    }
+
+    if (query.includes("fitur") || query.includes("menu") || query.includes("layanan")) {
+      return "RuangAksara memiliki beberapa fitur utama:\n1. **Pencarian Semantik**: Cari buku/dokumen menggunakan bahasa alami.\n2. **Kelola Buku & Sirkulasi**: Menu khusus pustakawan untuk peminjaman, pengembalian, dan denda.\n3. **Knowledge Base**: Panduan operasional perpustakaan bagi pustakawan.\n4. **Asisten Virtual**: Obrolan interaktif AI untuk membantu Anda.";
+    }
+
+    if (query.includes("buku") || query.includes("cari") || query.includes("katalog")) {
+      // Find up to 3 books in the database to show
+      const books = await prisma.book.findMany({ take: 3 });
+      if (books.length > 0) {
+        const bookList = books.map(b => `- **${b.title}** oleh ${b.author} (${b.year})`).join("\n");
+        return `Anda dapat mencari koleksi lengkap melalui menu **Katalog**. Berikut adalah beberapa koleksi teratas yang tersedia di perpustakaan saat ini:\n${bookList}\n\nSilakan gunakan menu pencarian untuk menelusuri kategori lainnya.`;
+      }
+      return "Anda dapat menelusuri dan mencari buku secara lengkap melalui menu **Katalog** di bagian atas halaman.";
+    }
+
+    // 4. Default helpful offline response
+    return "Halo! Saya **RuangAksara Assistant**. Saat ini koneksi ke server AI utama kami sedang terputus, sehingga saya beroperasi dalam mode luring (offline).\n\nAda beberapa panduan yang bisa saya berikan. Silakan ketik kata kunci seperti **'pinjam'**, **'perpanjang'**, **'denda'**, **'jurnal'**, atau **'buku'** untuk mendapatkan panduan otomatis dari sistem perpustakaan.";
+  } catch (error) {
+    console.error("Local fallback error:", error);
+    return "Halo! Mohon maaf, saat ini asisten AI sedang tidak tersedia karena kendala koneksi server. Silakan coba beberapa saat lagi.";
+  }
+}
+
 // ===== MAIN HANDLER =====
 export async function POST(req) {
   try {
@@ -153,11 +211,10 @@ export async function POST(req) {
       }
     }
 
-    // 3) All providers failed
-    return Response.json(
-      { reply: "⚠️ Semua layanan AI sedang tidak tersedia. Silakan coba lagi nanti." },
-      { status: 500 }
-    );
+    // 3) All providers failed, fallback to local database / rules matching
+    console.warn("[Chat API] ⚠️ External AIs failed or keys invalid. Falling back to local database/rules matching.");
+    const fallbackReply = await localChatFallback(message);
+    return Response.json({ reply: fallbackReply });
   } catch (error) {
     console.error("[Chat API] Final Error:", error.message || error);
     return Response.json(

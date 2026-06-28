@@ -8,6 +8,7 @@ import BorrowChart from "./BorrowChart";
 import PopularBooks from "./PopularBooks";
 import CategoryChart from "./CategoryChart";
 import UserManagement from "./UserManagement";
+import BorrowingManagement from "./BorrowingManagement";
 
 interface DashboardStats {
   totalBooks: number;
@@ -50,8 +51,8 @@ export default function DashboardAdmin({ userName }: DashboardAdminProps) {
 
   // Fetch stats and chart data
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    const fetchData = async (silent = false) => {
+      if (!silent) setLoading(true);
       try {
         const [statsRes, chartRes] = await Promise.all([
           fetch("/api/dashboard"),
@@ -73,11 +74,7 @@ export default function DashboardAdmin({ userName }: DashboardAdminProps) {
       }
     };
 
-    fetchData();
-
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
+    fetchData(false);
   }, []);
 
   const formatDay = (date: Date) => {
@@ -217,6 +214,9 @@ export default function DashboardAdmin({ userName }: DashboardAdminProps) {
 
       {/* User Management */}
       <UserManagement />
+
+      {/* Borrowing/Circulation Management */}
+      <BorrowingManagement />
     </div>
   );
 }

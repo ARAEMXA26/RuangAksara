@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Search, Filter, Plus, Eye, Pencil, Trash2,
-  ChevronLeft, ChevronRight, X, User
+  ChevronLeft, ChevronRight, X, User, RefreshCw
 } from "lucide-react";
 
 interface UserData {
@@ -36,8 +36,21 @@ export default function UserManagement() {
   const [deleteUser, setDeleteUser] = useState<UserData | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ message, type });
+  };
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  const fetchUsers = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const params = new URLSearchParams();
       params.set("page", String(page));
@@ -84,10 +97,15 @@ export default function UserManagement() {
       });
       if (res.ok) {
         setEditUser(null);
-        fetchUsers();
+        showToast("User berhasil diperbarui", "success");
+        fetchUsers(true);
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Gagal memperbarui user", "error");
       }
     } catch (err) {
       console.error("Failed to update user:", err);
+      showToast("Terjadi kesalahan koneksi", "error");
     } finally {
       setActionLoading(false);
     }
@@ -102,13 +120,15 @@ export default function UserManagement() {
       });
       if (res.ok) {
         setDeleteUser(null);
-        fetchUsers();
+        showToast("User berhasil dihapus", "success");
+        fetchUsers(true);
       } else {
         const data = await res.json();
-        alert(data.error || "Gagal menghapus user");
+        showToast(data.error || "Gagal menghapus user", "error");
       }
     } catch (err) {
       console.error("Failed to delete user:", err);
+      showToast("Terjadi kesalahan koneksi", "error");
     } finally {
       setActionLoading(false);
     }
@@ -148,6 +168,9 @@ export default function UserManagement() {
           <p className="user-mgmt-subtitle">Kelola semua akun user sistem</p>
         </div>
         <div className="user-mgmt-actions">
+          <button className="btn btn-sm btn-outline" onClick={() => fetchUsers(false)} title="Segarkan Data" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <RefreshCw size={14} /> Segarkan
+          </button>
           <div className="user-search-box">
             <Search size={16} className="user-search-icon" />
             <input
@@ -245,7 +268,7 @@ export default function UserManagement() {
                     </span>
                   </td>
                   <td>
-                    <div style={{ fontSize: "0.85rem", lineHeight: 1.5, whiteSpace: "pre-line" }}>
+                    <div style={{ fontSize: "0.85rem", lineHeight: 1.5, whiteSpace: "pre-line" }} suppressHydrationWarning>
                       {formatDate(u.createdAt)}
                     </div>
                   </td>
@@ -403,6 +426,12 @@ export default function UserManagement() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`toast toast-${toast.type}`}>
+          {toast.message}
         </div>
       )}
     </div>

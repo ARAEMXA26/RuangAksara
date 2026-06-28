@@ -17,6 +17,113 @@ export default function SearchPage() {
   const { user } = useAuth();
   const resultsRef = useRef<HTMLDivElement>(null);
 
+  // ===== Filter States =====
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedMinYear, setSelectedMinYear] = useState<number>(1990);
+  const [selectedCategoryPill, setSelectedCategoryPill] = useState<string | null>(null);
+
+  // Heuristics to classify dynamic fields
+  const getBookType = (book: any) => {
+    const titleLower = book.title?.toLowerCase() || "";
+    const catLower = book.category?.toLowerCase() || "";
+    const descLower = book.description?.toLowerCase() || "";
+    
+    if (catLower.includes("skripsi") || titleLower.includes("skripsi") || descLower.includes("skripsi")) return "Skripsi";
+    if (catLower.includes("tesis") || titleLower.includes("tesis") || descLower.includes("tesis")) return "Tesis";
+    if (catLower.includes("jurnal") || titleLower.includes("jurnal") || descLower.includes("jurnal")) return "Jurnal";
+    if (catLower.includes("e-book") || catLower.includes("ebook") || descLower.includes("pdf") || descLower.includes("e-book")) return "E-Book";
+    return "Buku";
+  };
+
+  const getBookLanguage = (book: any) => {
+    const desc = book.description || "";
+    if (desc.includes("Bahasa: Inggris")) return "Inggris";
+    if (desc.includes("Bahasa: Indonesia")) return "Indonesia";
+    
+    const text = (book.title + " " + desc).toLowerCase();
+    const englishWords = ["the", "of", "and", "in", "to", "for", "with", "on", "a", "an", "is", "are", "by"];
+    const hasEnglish = englishWords.some(word => new RegExp(`\\b${word}\\b`).test(text));
+    return hasEnglish ? "Inggris" : "Indonesia";
+  };
+
+  const matchesCategoryPill = (book: any, pill: string) => {
+    const cat = book.category?.toLowerCase() || "";
+    const title = book.title?.toLowerCase() || "";
+    const desc = book.description?.toLowerCase() || "";
+    const pillLower = pill.toLowerCase();
+
+    if (pillLower === "teknologi") {
+      return cat.includes("teknologi") || cat.includes("information") || cat.includes("ai") || cat.includes("algoritma") || cat.includes("database") || cat.includes("software") || cat.includes("jaringan") || cat.includes("computer");
+    }
+    if (pillLower === "repository") {
+      return cat.includes("umum") || cat.includes("repository") || cat.includes("skripsi") || cat.includes("tesis") || cat.includes("jurnal");
+    }
+    return cat.includes(pillLower) || title.includes(pillLower) || desc.includes(pillLower);
+  };
+
+  const handleTypeToggle = (type: string) => {
+    setSelectedTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
+  const handleLanguageToggle = (lang: string) => {
+    setSelectedLanguages(prev =>
+      prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]
+    );
+  };
+
+  const toggleCategoryPill = (name: string) => {
+    setSelectedCategoryPill(prev => prev === name ? null : name);
+  };
+
+  const handleResetFilters = async () => {
+    setSelectedTypes([]);
+    setSelectedLanguages([]);
+    setSelectedMinYear(1990);
+    setSelectedCategoryPill(null);
+    setQuery("");
+    
+    setLoading(true);
+    try {
+      const res = await fetch("/api/books");
+      const data = await res.json();
+      setResults(data.books || []);
+    } catch (error) {
+      console.error("Failed to reset results:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filtered Results
+  const filteredResults = results.filter(book => {
+    const type = getBookType(book);
+    const lang = getBookLanguage(book);
+    
+    const matchesType = selectedTypes.length === 0 || selectedTypes.includes(type);
+    const matchesLanguage = selectedLanguages.length === 0 || selectedLanguages.includes(lang);
+    const matchesYear = book.year >= selectedMinYear;
+    const matchesPill = !selectedCategoryPill || matchesCategoryPill(book, selectedCategoryPill);
+    
+    return matchesType && matchesLanguage && matchesYear && matchesPill;
+  });
+
+  // Calculate dynamic counts based on current results list
+  const typeCounts = {
+    "Buku": results.filter(b => getBookType(b) === "Buku").length,
+    "E-Book": results.filter(b => getBookType(b) === "E-Book").length,
+    "Jurnal": results.filter(b => getBookType(b) === "Jurnal").length,
+    "Skripsi": results.filter(b => getBookType(b) === "Skripsi").length,
+    "Tesis": results.filter(b => getBookType(b) === "Tesis").length,
+  };
+
+  const languageCounts = {
+    "Indonesia": results.filter(b => getBookLanguage(b) === "Indonesia").length,
+    "Inggris": results.filter(b => getBookLanguage(b) === "Inggris").length,
+  };
+
   // Initial load
   useEffect(() => {
     const fetchAll = async () => {
@@ -60,15 +167,19 @@ export default function SearchPage() {
 
   const handleSearch = async (e?: any) => {
     e?.preventDefault();
-    if (!query.trim()) return;
-
     setLoading(true);
     setSearched(true);
 
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      setResults(data.results || []);
+      if (!query.trim()) {
+        const res = await fetch("/api/books");
+        const data = await res.json();
+        setResults(data.books || []);
+      } else {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        setResults(data.results || []);
+      }
     } catch (error) {
       console.error("Search failed:", error);
       setResults([]);
@@ -251,13 +362,32 @@ export default function SearchPage() {
         <AnimatedSection animation="fade-up" delay={0.2}>
           <div className="katalog-category-row">
             <div className="katalog-category-label">Kategori</div>
-            <div className="repo-category-pill"><Monitor size={16} /> Teknologi</div>
-            <div className="repo-category-pill"><Briefcase size={16} /> Bisnis</div>
-            <div className="repo-category-pill"><GraduationCap size={16} /> Pendidikan</div>
-            <div className="repo-category-pill"><HeartPulse size={16} /> Kesehatan</div>
-            <div className="repo-category-pill"><Scale size={16} /> Hukum</div>
-            <div className="repo-category-pill"><Globe size={16} /> Sosial & Humaniora</div>
-            <div className="repo-category-pill"><Library size={16} /> Repository</div>
+            {[
+              { name: "Teknologi", icon: <Monitor size={16} /> },
+              { name: "Bisnis", icon: <Briefcase size={16} /> },
+              { name: "Pendidikan", icon: <GraduationCap size={16} /> },
+              { name: "Kesehatan", icon: <HeartPulse size={16} /> },
+              { name: "Hukum", icon: <Scale size={16} /> },
+              { name: "Sosial", label: "Sosial & Humaniora", icon: <Globe size={16} /> },
+              { name: "Repository", icon: <Library size={16} /> }
+            ].map(pill => {
+              const pillName = pill.label || pill.name;
+              const isActive = selectedCategoryPill === pill.name;
+              return (
+                <div
+                  key={pill.name}
+                  className="repo-category-pill"
+                  onClick={() => toggleCategoryPill(pill.name)}
+                  style={{
+                    background: isActive ? "black" : "white",
+                    color: isActive ? "white" : "var(--gray-700)",
+                    borderColor: isActive ? "black" : "var(--gray-200)",
+                  }}
+                >
+                  {pill.icon} {pillName}
+                </div>
+              );
+            })}
           </div>
         </AnimatedSection>
 
@@ -269,55 +399,70 @@ export default function SearchPage() {
             <aside className="katalog-filter-sidebar">
               <div className="katalog-filter-header">
                 <h3>Filter Pencarian</h3>
-                <button className="katalog-filter-reset">Reset</button>
+                <button className="katalog-filter-reset" onClick={handleResetFilters}>Reset</button>
               </div>
 
               <div className="katalog-filter-section">
                 <div className="katalog-filter-title">Jenis Koleksi</div>
                 <div className="katalog-checkbox-group">
-                  <label className="katalog-checkbox-label">
-                    <input type="checkbox" defaultChecked /> Buku
-                    <span className="katalog-checkbox-count">(48)</span>
-                  </label>
-                  <label className="katalog-checkbox-label">
-                    <input type="checkbox" /> E-Book
-                    <span className="katalog-checkbox-count">(36)</span>
-                  </label>
-                  <label className="katalog-checkbox-label">
-                    <input type="checkbox" /> Jurnal
-                    <span className="katalog-checkbox-count">(28)</span>
-                  </label>
-                  <label className="katalog-checkbox-label">
-                    <input type="checkbox" /> Skripsi
-                    <span className="katalog-checkbox-count">(21)</span>
-                  </label>
-                  <label className="katalog-checkbox-label">
-                    <input type="checkbox" /> Tesis
-                    <span className="katalog-checkbox-count">(10)</span>
-                  </label>
+                  {[
+                    { key: "Buku", label: "Buku" },
+                    { key: "E-Book", label: "E-Book" },
+                    { key: "Jurnal", label: "Jurnal" },
+                    { key: "Skripsi", label: "Skripsi" },
+                    { key: "Tesis", label: "Tesis" }
+                  ].map(t => (
+                    <label key={t.key} className="katalog-checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={selectedTypes.includes(t.key)}
+                        onChange={() => handleTypeToggle(t.key)}
+                      />
+                      {" "}{t.label}
+                      <span className="katalog-checkbox-count">({typeCounts[t.key as keyof typeof typeCounts] || 0})</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
               <div className="katalog-filter-section">
-                <div className="katalog-filter-title">Tahun Terbit</div>
-                <input type="range" min="1990" max="2024" defaultValue="1990" style={{ width: "100%", accentColor: "var(--primary)", marginTop: "8px" }} />
+                <div className="katalog-filter-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>Tahun Terbit</span>
+                  <span style={{ fontSize: "0.8rem", fontWeight: "600", background: "var(--gray-900)", color: "white", padding: "2px 8px", borderRadius: "12px" }}>
+                    &ge; {selectedMinYear}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="1990"
+                  max="2026"
+                  value={selectedMinYear}
+                  onChange={(e) => setSelectedMinYear(parseInt(e.target.value))}
+                  style={{ width: "100%", accentColor: "var(--primary)", marginTop: "8px", cursor: "pointer" }}
+                />
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--gray-500)", marginTop: "8px" }}>
                   <span>1990</span>
-                  <span>2024</span>
+                  <span>2026</span>
                 </div>
               </div>
 
               <div className="katalog-filter-section">
                 <div className="katalog-filter-title">Bahasa</div>
                 <div className="katalog-checkbox-group">
-                  <label className="katalog-checkbox-label">
-                    <input type="checkbox" defaultChecked /> Indonesia
-                    <span className="katalog-checkbox-count">(85)</span>
-                  </label>
-                  <label className="katalog-checkbox-label">
-                    <input type="checkbox" /> Inggris
-                    <span className="katalog-checkbox-count">(42)</span>
-                  </label>
+                  {[
+                    { key: "Indonesia", label: "Indonesia" },
+                    { key: "Inggris", label: "Inggris" }
+                  ].map(l => (
+                    <label key={l.key} className="katalog-checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={selectedLanguages.includes(l.key)}
+                        onChange={() => handleLanguageToggle(l.key)}
+                      />
+                      {" "}{l.label}
+                      <span className="katalog-checkbox-count">({languageCounts[l.key as keyof typeof languageCounts] || 0})</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </aside>
@@ -329,7 +474,7 @@ export default function SearchPage() {
                   <div>
                     <h2 style={{ fontSize: "1.2rem", fontWeight: "700", marginBottom: "4px" }}>Hasil Pencarian</h2>
                     <p style={{ fontSize: "0.9rem", color: "var(--gray-600)" }}>
-                      Menampilkan {results.length} koleksi {query ? <span>untuk <span style={{ color: "var(--primary)", fontWeight: "600" }}>"{query}"</span></span> : "terbaru"}
+                      Menampilkan {filteredResults.length} koleksi {query ? <span>untuk <span style={{ color: "var(--primary)", fontWeight: "600" }}>"{query}"</span></span> : "terbaru"}
                     </p>
                   </div>
                   <div className="repo-content-actions">
@@ -355,9 +500,9 @@ export default function SearchPage() {
                   <p style={{ color: "var(--gray-600)" }}>Mencari koleksi yang paling relevan...</p>
                 </div>
               ) : searched ? (
-                results.length > 0 ? (
+                filteredResults.length > 0 ? (
                   <div ref={resultsRef}>
-                    {results.map((book) => (
+                    {filteredResults.map((book) => (
                       <BookCard
                         key={book.id}
                         book={book}
@@ -374,7 +519,7 @@ export default function SearchPage() {
                   <div style={{ textAlign: "center", padding: "60px 20px", background: "white", borderRadius: "12px", border: "1px solid var(--gray-200)" }}>
                     <Inbox size={48} style={{ color: "var(--gray-400)", margin: "0 auto 16px" }} />
                     <h3 style={{ fontSize: "1.2rem", color: "var(--gray-800)", marginBottom: "8px" }}>Tidak ada hasil ditemukan</h3>
-                    <p style={{ color: "var(--gray-500)" }}>Coba gunakan kata kunci yang berbeda atau lebih spesifik</p>
+                    <p style={{ color: "var(--gray-500)" }}>Coba gunakan kata kunci yang berbeda atau lebih spesifik dengan filter Anda</p>
                   </div>
                 )
               ) : (

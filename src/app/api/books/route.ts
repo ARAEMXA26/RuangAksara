@@ -19,6 +19,8 @@ export async function GET() {
       category: book.category,
       year: book.year,
       cover: book.cover,
+      description: book.description,
+      pageCount: book.pageCount,
       available: book.inventory.filter((i) => i.status === "available").length,
       total: book.inventory.length,
       location: book.inventory[0]?.locationRack || "-",
@@ -35,7 +37,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { title, author, isbn, category, year, cover, description, pageCount } = body;
+    const { title, author, isbn, category, year, cover, description, pageCount, copies, locationRack } = body;
 
     if (!title || !author || !isbn) {
       return NextResponse.json({ error: "Title, author, and isbn are required" }, { status: 400 });
@@ -55,7 +57,13 @@ export async function POST(req: Request) {
         year: year ? parseInt(year) : 2024, 
         cover: cover || "📘", 
         description, 
-        pageCount: pageCount ? parseInt(pageCount) : null
+        pageCount: pageCount ? parseInt(pageCount) : null,
+        inventory: {
+          create: Array.from({ length: copies ? parseInt(copies) : 1 }).map(() => ({
+            status: "available",
+            locationRack: locationRack || ""
+          }))
+        }
       }
     });
 

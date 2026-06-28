@@ -107,21 +107,24 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "User ID required" }, { status: 400 });
     }
 
+    // Find all inventory items currently borrowed by this user
+    const activeTransactions = await db.transaction.findMany({
+      where: { userId: id, status: { in: ["active", "overdue"] } },
+      select: { inventoryId: true },
+    });
+    const activeInventoryIds = activeTransactions.map((t) => t.inventoryId);
+
+    // Mark those inventory items as available again
+    if (activeInventoryIds.length > 0) {
+      await db.inventory.updateMany({
+        where: { id: { in: activeInventoryIds } },
+        data: { status: "available" },
+      });
+    }
+
     // Delete related records first
     await db.bookmark.deleteMany({ where: { userId: id } });
     await db.reservation.deleteMany({ where: { userId: id } });
-
-    // Check for active transactions
-    const activeTransactions = await db.transaction.count({
-      where: { userId: id, status: { in: ["active", "overdue"] } },
-    });
-
-    if (activeTransactions > 0) {
-      return NextResponse.json(
-        { error: "User masih memiliki peminjaman aktif. Selesaikan terlebih dahulu." },
-        { status: 400 }
-      );
-    }
 
     // Delete fines for user's transactions
     const userTransactions = await db.transaction.findMany({

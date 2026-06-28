@@ -2,7 +2,32 @@
 
 import { Book, MapPin, BookOpen, Bookmark, Clock } from "lucide-react";
 
+// Helper to parse description metadata
+const getMetadata = (description: string) => {
+  const meta = { penerbit: "", bahasa: "", jenisKoleksi: "" };
+  if (!description) return meta;
+  description.split("\n").forEach(line => {
+    if (line.startsWith("Penerbit:")) meta.penerbit = line.replace("Penerbit:", "").trim();
+    if (line.startsWith("Bahasa:")) meta.bahasa = line.replace("Bahasa:", "").trim();
+    if (line.startsWith("Jenis Koleksi:")) meta.jenisKoleksi = line.replace("Jenis Koleksi:", "").trim();
+  });
+  return meta;
+};
+
+// Helper to get clean description without metadata lines
+const cleanDescription = (description: string) => {
+  if (!description) return "";
+  return description
+    .split("\n")
+    .filter(line => !line.startsWith("Penerbit:") && !line.startsWith("Bahasa:") && !line.startsWith("Jenis Koleksi:"))
+    .join("\n")
+    .trim();
+};
+
 export default function BookCard({ book, onBorrow, onBookmark, onReserve, isBookmarked = false, showBorrow = false, layout = "vertical" }) {
+  const { penerbit, bahasa, jenisKoleksi } = getMetadata(book.description || "");
+  const cleanDesc = cleanDescription(book.description || "");
+
   const availabilityClass =
     book.available > 0 ? "badge-success" : "badge-danger";
   const availabilityText =
@@ -32,10 +57,12 @@ export default function BookCard({ book, onBorrow, onBookmark, onReserve, isBook
             )}
           </div>
           <div className="book-card-horizontal-desc">
-            {book.description || "Buku ini membahas konsep dan teknik terkait topik tersebut secara komprehensif."}
+            {cleanDesc || "Buku ini membahas konsep dan teknik terkait topik tersebut secara komprehensif."}
           </div>
           <div className="book-card-horizontal-tags">
             <span className="book-card-horizontal-tag">{book.category}</span>
+            {jenisKoleksi && <span className="book-card-horizontal-tag" style={{ background: "var(--primary-lighter)", color: "var(--primary)" }}>{jenisKoleksi}</span>}
+            {bahasa && <span className="book-card-horizontal-tag">{bahasa}</span>}
             {book.title.includes("AI") || book.title.includes("Artificial") ? (
               <><span className="book-card-horizontal-tag">Machine Learning</span><span className="book-card-horizontal-tag">Neural Network</span></>
             ) : null}
@@ -78,6 +105,11 @@ export default function BookCard({ book, onBorrow, onBookmark, onReserve, isBook
         )}
       </div>
       <div className="book-card-body">
+        {jenisKoleksi && (
+          <span className="badge" style={{ fontSize: "0.7rem", marginBottom: "8px", display: "inline-block", background: "var(--primary-lighter)", color: "var(--primary)", border: "1px solid var(--primary-light)", padding: "2px 6px", borderRadius: "4px", fontWeight: "600" }}>
+            {jenisKoleksi}
+          </span>
+        )}
         <h3 className="book-card-title">{book.title}</h3>
         <p className="book-card-author">{book.author}</p>
         <div className="book-card-meta">

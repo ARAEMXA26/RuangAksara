@@ -18,6 +18,19 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState({ totalUsers: 0, totalBooks: 0, overdueCount: 0 });
   const [dataLoading, setDataLoading] = useState(true);
 
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ message, type });
+  };
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   useEffect(() => {
     if (!authLoading && (!user || user.role !== "pustakawan")) {
       router.push("/dashboard"); // Redirect non-admins to user dashboard
@@ -65,12 +78,17 @@ export default function AdminDashboardPage() {
       });
       
       if (res.ok) {
+        showToast("Request antrean buku berhasil disetujui!", "success");
         setReservations(prev => 
           prev.map(r => r.id === id ? { ...r, status: 'approved' } : r)
         );
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Gagal menyetujui request", "error");
       }
     } catch (error) {
       console.error("Error approving reservation", error);
+      showToast("Terjadi kesalahan koneksi", "error");
     }
   };
 
@@ -224,6 +242,11 @@ export default function AdminDashboardPage() {
           </main>
         </div>
       </div>
+      {toast && (
+        <div className={`toast toast-${toast.type}`}>
+          {toast.message}
+        </div>
+      )}
     </>
   );
 }

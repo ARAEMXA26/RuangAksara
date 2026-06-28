@@ -53,18 +53,20 @@ export default function ScrollProgressBar() {
   return (
     <div
       className={`scroll-progress-container ${visible ? "scroll-progress-visible" : ""}`}
+      suppressHydrationWarning
     >
       {/* Track (background) */}
-      <div className="scroll-progress-track">
+      <div className="scroll-progress-track" suppressHydrationWarning>
         {/* Fill bar */}
         <div
           ref={fillRef}
           className="scroll-progress-fill"
+          suppressHydrationWarning
         />
       </div>
 
       {/* Percentage label */}
-      <div ref={labelRef} className="scroll-progress-label">
+      <div ref={labelRef} className="scroll-progress-label" suppressHydrationWarning>
         0%
       </div>
     </div>

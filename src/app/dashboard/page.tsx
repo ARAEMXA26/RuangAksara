@@ -16,7 +16,12 @@ import {
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [transactions, setTransactions] = useState([]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [fines, setFines] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
   const [reservations, setReservations] = useState([]);
@@ -88,7 +93,7 @@ export default function DashboardPage() {
     fetchData();
   }, [user]);
 
-  if (authLoading || dataLoading) {
+  if (!mounted || authLoading || dataLoading) {
     return (
       <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
         <span className="loading-dots"><span></span><span></span><span></span></span>

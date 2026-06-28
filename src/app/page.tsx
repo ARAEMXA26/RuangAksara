@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import AnimatedSection from "@/components/AnimatedSection";
 import {
@@ -47,6 +47,24 @@ export default function HomePage() {
   const popularScrollRef = useRef(null);
   const [bgSrc, setBgSrc] = useState("/upj2-3.png");
   const [bgError, setBgError] = useState(false);
+
+  const [books, setBooks] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const res = await fetch("/api/books");
+        const data = await res.json();
+        setBooks(data.books || []);
+      } catch (err) {
+        console.error("Error fetching books:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBooks();
+  }, []);
 
   // ... (keep categories and other arrays inside)
   const kategoriKoleksi = [
@@ -299,34 +317,80 @@ export default function HomePage() {
         </section>
       </AnimatedSection>
 
-      {/* ===== PALING BANYAK DIBACA ===== */}
+      {/* ===== BUKU BARU ===== */}
       <AnimatedSection>
         <section className="section">
           <div className="container">
             <div className="lp-section-header-row" style={{ flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-              <h2 className="section-title" style={{ marginBottom: "0", textAlign: "center" }}>Paling Banyak Dibaca</h2>
+              <h2 className="section-title" style={{ marginBottom: "0", textAlign: "center" }}>Buku Baru</h2>
               <Link href="/search" className="lp-link-arrow">Lihat semua <ArrowRight size={16} /></Link>
             </div>
             <div className="lp-scroll-wrapper">
               <button className="lp-scroll-btn lp-scroll-left" onClick={() => scrollPopular(-1)}><ChevronLeft size={20} /></button>
               <div className="lp-scroll-container" ref={popularScrollRef}>
-                {popularBooks.map((book) => (
-                  <div key={book.rank} className="lp-book-card">
-                    <div className="lp-book-cover">
-                      <div className="lp-popular-rank">{book.rank}</div>
-                      {book.cover && book.cover.startsWith("http") ? (
-                        <img src={book.cover} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      ) : (
-                        <Book size={48} className="text-primary" />
-                      )}
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="lp-book-card" style={{ minHeight: "280px" }}>
+                      <div className="lp-book-cover skeleton-box" style={{ height: "150px" }} />
+                      <div className="lp-book-info" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <div className="skeleton-line" style={{ width: "85%", height: "16px" }} />
+                        <div className="skeleton-line" style={{ width: "60%", height: "12px" }} />
+                        <div className="skeleton-line" style={{ width: "35%", height: "20px", marginTop: "8px" }} />
+                      </div>
                     </div>
-                    <div className="lp-book-info">
-                      <h4 className="lp-book-title">{book.title}</h4>
-                      <p className="lp-book-author">{book.author}</p>
-                      <p className="lp-book-year">{book.year}</p>
+                  ))
+                ) : books.length > 0 ? (
+                  books.map((book, index) => {
+                    const isNew = index < 3;
+                    const isAvailable = (book.available ?? 0) > 0;
+                    return (
+                      <div key={book.id || index} className="lp-book-card" style={{ display: "flex", flexDirection: "column" }}>
+                        <div className="lp-book-cover" style={{ position: "relative", height: "150px" }}>
+                          {isNew && <div className="lp-book-badge-new">Baru</div>}
+                          <div className={`lp-book-badge-status ${isAvailable ? "available" : "unavailable"}`}>
+                            <span className="status-dot"></span>
+                            {isAvailable ? "Tersedia" : "Habis"}
+                          </div>
+                          {book.cover && (book.cover.startsWith("http://") || book.cover.startsWith("https://") || book.cover.startsWith("/")) ? (
+                            <img src={book.cover} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ) : (
+                            <div style={{ fontSize: "3rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              {book.cover || "📘"}
+                            </div>
+                          )}
+                        </div>
+                        <div className="lp-book-info">
+                          <div>
+                            <h4 className="lp-book-title" title={book.title}>{book.title}</h4>
+                            <p className="lp-book-author">{book.author}</p>
+                          </div>
+                          <div>
+                            <span className="lp-book-year" style={{ display: "inline-block", alignSelf: "flex-start" }}>{book.year}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  popularBooks.map((book) => (
+                    <div key={book.rank} className="lp-book-card">
+                      <div className="lp-book-cover" style={{ position: "relative", height: "150px" }}>
+                        <div style={{ fontSize: "3rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {book.cover || "📘"}
+                        </div>
+                      </div>
+                      <div className="lp-book-info">
+                        <div>
+                          <h4 className="lp-book-title" title={book.title}>{book.title}</h4>
+                          <p className="lp-book-author">{book.author}</p>
+                        </div>
+                        <div>
+                          <span className="lp-book-year" style={{ display: "inline-block", alignSelf: "flex-start" }}>{book.year}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
               <button className="lp-scroll-btn lp-scroll-right" onClick={() => scrollPopular(1)}><ChevronRight size={20} /></button>
             </div>

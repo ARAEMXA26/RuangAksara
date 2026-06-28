@@ -8,18 +8,7 @@ import AnimatedSection from "@/components/AnimatedSection";
 export default function TentangKamiPage() {
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-primary selection:text-white">
-      {/* Header/Nav Back */}
-      <div className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-slate-200/50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center">
-          <Link 
-            href="/" 
-            className="flex items-center gap-2.5 text-slate-600 hover:text-primary transition-all duration-300 font-semibold text-sm group"
-          >
-            <ArrowLeft size={18} className="transform group-hover:-translate-x-1 transition-transform" />
-            Kembali ke Beranda
-          </Link>
-        </div>
-      </div>
+
 
       {/* Hero Section */}
       <section className="relative pt-44 pb-20 overflow-hidden bg-white border-b border-slate-100">
@@ -30,8 +19,7 @@ export default function TentangKamiPage() {
         <div className="max-w-7xl mx-auto px-6 relative">
           <AnimatedSection>
             <div className="text-center max-w-4xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 font-bold text-xs uppercase tracking-wider mb-8 border border-blue-100">
-                <Sparkles size={14} className="text-blue-500 animate-pulse" />
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 font-bold text-xs uppercase tracking-wider mb-8 border border-blue-100">
                 Mengenal Lebih Dekat
               </div>
               <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight mb-8 leading-tight">
@@ -71,8 +59,7 @@ export default function TentangKamiPage() {
             {/* Right Column: Text & Features */}
             <div className="lg:col-span-7 flex flex-col justify-center">
               <AnimatedSection animation="fade-left" delay={0.2}>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-600 font-bold text-xs uppercase tracking-wider mb-5 border border-indigo-100">
-                  <Cpu size={14} />
+                <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-600 font-bold text-xs uppercase tracking-wider mb-5 border border-indigo-100">
                   Platform Cerdas
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight">
@@ -119,8 +106,7 @@ export default function TentangKamiPage() {
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <AnimatedSection>
             <div className="text-center mb-20">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 text-slate-300 font-bold text-xs uppercase tracking-wider mb-5 border border-white/10">
-                <Compass size={14} className="text-blue-400" />
+              <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-white/5 text-slate-300 font-bold text-xs uppercase tracking-wider mb-5 border border-white/10">
                 Identitas Visual
               </div>
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Filosofi Logo</h2>
@@ -155,7 +141,7 @@ export default function TentangKamiPage() {
                   
                   <div className="flex gap-5 items-start">
                     <div className="w-12 h-12 shrink-0 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xl font-black text-blue-400 shadow-md">
-                      R
+                      1
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-white mb-2 tracking-wide">Ruang (Wadah Pengetahuan)</h3>
@@ -167,7 +153,7 @@ export default function TentangKamiPage() {
 
                   <div className="flex gap-5 items-start">
                     <div className="w-12 h-12 shrink-0 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xl font-black text-blue-400 shadow-md">
-                      A
+                      2
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-white mb-2 tracking-wide">Aksara (Penyimpanan Literatur)</h3>
@@ -178,8 +164,8 @@ export default function TentangKamiPage() {
                   </div>
 
                   <div className="flex gap-5 items-start">
-                    <div className="w-12 h-12 shrink-0 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary shadow-md">
-                      <Sparkles size={20} className="text-blue-400" />
+                    <div className="w-12 h-12 shrink-0 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xl font-black text-blue-400 shadow-md">
+                      3
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-white mb-2 tracking-wide">Kecerdasan Buatan (AI Integration)</h3>
@@ -197,7 +183,7 @@ export default function TentangKamiPage() {
       </section>
 
       {/* Visi & Misi Section */}
-      <section className="py-32 bg-slate-50">
+      <section id="visi-misi" className="py-32 bg-slate-50">
         <div className="max-w-7xl mx-auto px-6">
           
           {/* Visi Card */}
@@ -255,16 +241,15 @@ export default function TentangKamiPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-primary to-blue-700 text-white text-center px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.1),transparent_40%)]" />
+      <section className="py-24 text-center px-6 bg-slate-50">
         <AnimatedSection className="relative z-10">
-          <h2 className="text-3xl md:text-5xl font-extrabold mb-6 tracking-tight">Siap Menjelajahi Ruang Aksara?</h2>
-          <p className="text-lg md:text-xl text-blue-100 mb-10 max-w-xl mx-auto font-light leading-relaxed">
+          <h2 className="text-3xl md:text-5xl font-extrabold mb-6 tracking-tight text-slate-900">Siap Menjelajahi Ruang Aksara?</h2>
+          <p className="text-base md:text-lg text-slate-600 mb-10 max-w-xl mx-auto font-normal leading-relaxed">
             Mulailah riset Anda hari ini dengan pencarian referensi yang didukung penuh oleh kecerdasan buatan.
           </p>
           <Link 
             href="/search" 
-            className="inline-flex items-center justify-center px-8 py-4 text-base font-bold bg-white text-primary rounded-full hover:bg-slate-50 hover:scale-105 transition-all duration-300 shadow-xl"
+            className="inline-flex items-center justify-center px-8 py-4 text-base font-bold bg-primary text-white rounded-full hover:opacity-90 hover:scale-105 transition-all duration-300 shadow-lg"
           >
             Mulai Pencarian Sekarang
           </Link>
