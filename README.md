@@ -27,32 +27,25 @@ Sistem ini dikembangkan sebagai proyek **Ujian Akhir Semester (UAS)** mata kulia
 - Pencarian buku menggunakan pemahaman semantik, bukan hanya keyword matching
 - Pengguna bisa mencari dengan bahasa natural (contoh: "buku tentang kecerdasan buatan")
 
-### 📖 Katalog & Repository Digital Dinamis
+### 📖 Katalog & Repository Digital
 - Koleksi lengkap: Buku, Jurnal, Skripsi, Disertasi, Artikel Penelitian
-- **Dynamic New Books Display**: Menampilkan data buku baru secara real-time dari database di Landing Page beserta label status ketersediaan (*Tersedia* / *Habis*).
 - Filter berdasarkan kategori, tahun, dan jenis koleksi
+- Statistik koleksi: 15.000+ buku, 5.200+ jurnal, 12.500+ artikel penelitian
 
-### 🔄 Dashboard Sirkulasi Admin & Pustakawan
-- **Librarian Command Center**: Grafik statistik peminjaman aktif, keterlambatan buku, buku yang harus kembali hari ini, dan pengingat buku yang jatuh tempo dalam 3 hari ke depan.
-- **Sirkulasi Digital**: Peminjaman, pengembalian, status tracking real-time, dan kalkulator denda keterlambatan otomatis (Rp 1.000/hari) terintegrasi secara dinamis.
-- Riwayat transaksi sirkulasi dan pelunasan denda.
+### 🔄 Sistem Sirkulasi
+- Peminjaman dan pengembalian buku secara digital
+- Tracking status peminjaman real-time
+- Perhitungan denda otomatis untuk keterlambatan
 
-### 🧠 Knowledge Base dengan Kategori & Akses
-- Basis pengetahuan/repositori pustakawan untuk berbagi SOP dan panduan.
-- Dukungan CRUD penuh bagi pustakawan dengan pengelompokan **Kategori** (*SOP & Panduan*, *Riset & Jurnal*, *Kebijakan*) dan **Tingkat Akses** (*Terbuka* / *Terbatas*).
-- Fitur bookmarking pengetahuan bagi Mahasiswa dan Dosen.
+### 🧠 Knowledge Base
+- Basis pengetahuan khusus untuk pustakawan
+- Eksternalisasi dan sharing pengetahuan antar pustakawan
+- Manajemen informasi perpustakaan terpusat
 
-### 📍 Manajemen Lokasi & Rak Fisik (Capacity Tracking)
-- Visualisasi kapasitas rak fisik buku secara real-time di database.
-- Melacak lokasi penempatan buku (contoh: *Lantai 2, Rak A-1*) dengan kapasitas maksimum dan ketersediaan ruang penyimpanan.
-
-### ❓ Pusat Bantuan & FAQ Interaktif
-- Halaman Bantuan (`/bantuan`) terintegrasi dengan pencarian FAQ berbasis kata kunci.
-- Pengelompokan kategori bantuan: Akun, Sirkulasi, AI, dan Pustakawan.
-
-### 👤 Autentikasi & Dashboard Personal
+### 👤 Autentikasi & Dashboard
 - Sistem login/register dengan **Firebase Authentication**
-- Dashboard personal untuk melacak peminjaman aktif, total denda, dan riwayat aktivitas secara ringkas.
+- Dashboard personal untuk setiap pengguna
+- Manajemen profil dan riwayat aktivitas
 
 ---
 
@@ -60,14 +53,14 @@ Sistem ini dikembangkan sebagai proyek **Ujian Akhir Semester (UAS)** mata kulia
 
 | Kategori | Teknologi |
 |---|---|
-| **Frontend** | Next.js 16 (Webpack), React 19, CSS3 |
+| **Frontend** | Next.js 15, React 19, CSS3 |
 | **Backend** | Next.js API Routes |
 | **Database** | PostgreSQL + Prisma ORM |
 | **Autentikasi** | Firebase Authentication |
 | **AI Provider (Primary)** | Groq API (Llama 3.3 70B, Llama 3.1 8B, Gemma2, Mixtral) |
 | **AI Provider (Fallback)** | Google Gemini API (1.5 Flash, 2.0 Flash, 2.5 Pro) |
 | **Styling** | Vanilla CSS dengan Custom Design System |
-| **Animasi** | GSAP, Intersection Observer API, CSS Animations |
+| **Animasi** | Intersection Observer API, CSS Animations |
 
 ---
 
@@ -76,20 +69,18 @@ Sistem ini dikembangkan sebagai proyek **Ujian Akhir Semester (UAS)** mata kulia
 ```
 libkms-ai/
 ├── prisma/                    # Database schema & seed
-│   ├── schema.prisma          # Database schema (User, Book, Inventory, Transaction, Fine, KnowledgeBase)
-│   └── seed.js                # Database seeder dengan data mock baru
+│   ├── schema.prisma
+│   └── seed.js
 ├── public/                    # Aset statis (gambar, logo)
 ├── src/
 │   ├── app/
 │   │   ├── api/               # API Routes
 │   │   │   ├── auth/          # Autentikasi (register, verify, me)
-│   │   │   ├── books/         # CRUD buku & kapasitas rak (/racks)
+│   │   │   ├── books/         # CRUD buku
 │   │   │   ├── chat/          # Chatbot AI (Groq + Gemini)
 │   │   │   ├── circulation/   # Sirkulasi peminjaman
-│   │   │   ├── knowledge/     # CRUD Knowledge base (/externalize)
-│   │   │   ├── dashboard/     # API dashboard admin (sirkulasi, user)
+│   │   │   ├── knowledge/     # Knowledge base
 │   │   │   └── search/        # Pencarian semantik
-│   │   ├── bantuan/           # Halaman bantuan & FAQ
 │   │   ├── circulation/       # Halaman sirkulasi
 │   │   ├── dashboard/         # Dashboard pengguna & admin
 │   │   ├── knowledge/         # Halaman knowledge base
@@ -105,10 +96,7 @@ libkms-ai/
 │   │   ├── Navbar.js          # Navigasi utama
 │   │   ├── Footer.js          # Footer
 │   │   ├── BookCard.js        # Kartu buku
-│   │   └── Dashboard/
-│   │       ├── BorrowingManagement.tsx # Dashboard manajemen sirkulasi admin
-│   │       ├── UserManagement.tsx      # Dashboard manajemen user admin
-│   │       └── CategoryChart.tsx       # Chart statistik kategori
+│   │   └── ...
 │   ├── contexts/              # React Context
 │   │   └── AuthContext.js     # Context autentikasi
 │   └── lib/                   # Utilitas & konfigurasi
@@ -157,41 +145,9 @@ Buka [http://localhost:3000](http://localhost:3000) di browser Anda.
 └──────────────────┬──────────────────────────────┘
                    │
                    ▼
- ┌─────────────────────────────────────────────────┐
- │              NEXT.JS API ROUTES                  │
- │  /api/chat  /api/books  /api/auth  /api/search   │
- └──────┬──────────┬───────────┬───────────────────┘
-        │          │           │
-        ▼          ▼           ▼
-   ┌────────┐  ┌────────┐  ┌──────────┐
-   │ Groq   │  │PostgreSQL│ │ Firebase │
-   │ AI API │  │ (Prisma) │ │   Auth   │
-   └───┬────┘  └────────┘  └──────────┘
-       │
-       ▼ (fallback)
-   ┌────────┐
-   │ Gemini │
-   │ AI API │
-   └────────┘
-```
-
----
-
-## 👨‍💻 Pengembang
-
-| Nama | NIM |
-|---|---|
-| **Arae Mahesa Armera** | 2024081015 |
-| **Laurensius Jovito Mahaputra Darsono** | 2024081008 |
-| **Ruud Zaki Bramdani** | 2024081028 |
-
-Dikembangkan sebagai proyek UAS Semester 4.
-
----
-
-## 📄 Lisensi
-
-Proyek ini dibuat untuk keperluan akademik.�  /api/chat  /api/books  /api/auth  /api/search   │
+┌─────────────────────────────────────────────────┐
+│              NEXT.JS API ROUTES                  │
+│  /api/chat  /api/books  /api/auth  /api/search   │
 └──────┬──────────┬───────────┬───────────────────┘
        │          │           │
        ▼          ▼           ▼
